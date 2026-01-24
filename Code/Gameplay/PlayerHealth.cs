@@ -1,23 +1,28 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class PlayerHealth : MonoBehaviour
 {
     public int maxHealth = 10;
     public int currentHealth;
+    
+    // Ссылка на панель затемнения в Canvas уровня (если есть)
+    // Если нет, можно сделать просто резкий переход
+    public GameObject deathFadePanel; 
+
+    private bool isDead = false;
 
     void Start()
     {
-        // При старте здоровье полное
         currentHealth = maxHealth;
-        Debug.Log($"ИГРОК: Я родился! Мое здоровье: {currentHealth}");
     }
 
-    // Этот метод будут вызывать враги
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        Debug.Log($"ИГРОК: Ай! Получен урон: {damage}. Осталось здоровья: {currentHealth}");
+        if (isDead) return;
 
+        currentHealth -= damage;
         if (currentHealth <= 0)
         {
             Die();
@@ -26,8 +31,30 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
-        Debug.Log("ИГРОК: Я погиб... F");
-        // Тут потом добавим рестарт уровня или экран смерти
-        // Destroy(gameObject); // Пока не уничтожаем, чтобы консоль не пропала
+        isDead = true;
+        // Отключаем управление, чтобы игрок не дергался
+        GetComponent<PlayerMovement>().enabled = false;
+        GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+
+        StartCoroutine(DeathSequence());
+    }
+
+    IEnumerator DeathSequence()
+    {
+        // 1. Пауза ("повиснуть на пару секунд")
+        // Можно использовать Time.timeScale = 0, но тогда корутины остановятся.
+        // Лучше просто подождать в реальном времени.
+        yield return new WaitForSeconds(2f);
+
+        // 2. Затемнение (если панель назначена)
+        if (deathFadePanel != null)
+        {
+            deathFadePanel.SetActive(true);
+            // Тут можно добавить плавное появление alpha от 0 до 1, но для простоты включим сразу
+            yield return new WaitForSeconds(1f); 
+        }
+
+        // 3. Загрузка сцены диалога
+        SceneManager.LoadScene("DeathDialogueScene");
     }
 }
