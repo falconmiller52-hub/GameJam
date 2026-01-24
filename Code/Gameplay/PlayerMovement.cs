@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Важно! Добавьте эту строку
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -8,29 +8,59 @@ public class PlayerMovement : MonoBehaviour
 
     private Rigidbody2D rb;
     private Vector2 movement;
+    private Animator animator;
+    private SpriteRenderer sr; // Вернули SpriteRenderer
+    private Camera mainCam; 
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        sr = GetComponent<SpriteRenderer>(); // Не забудьте получить компонент
+        mainCam = Camera.main;
     }
 
     void Update()
     {
-        // ВАРИАНТ ДЛЯ НОВОЙ СИСТЕМЫ (без Action Asset)
-        // Считываем клавиатуру напрямую
+        // 1. Ввод движения
         var keyboard = Keyboard.current;
-        if (keyboard == null) return; // Если клавиатуры нет, выходим
+        if (keyboard != null)
+        {
+            float x = 0; float y = 0;
+            if (keyboard.dKey.isPressed) x = 1;
+            if (keyboard.aKey.isPressed) x = -1;
+            if (keyboard.wKey.isPressed) y = 1;
+            if (keyboard.sKey.isPressed) y = -1;
+            movement = new Vector2(x, y);
+        }
 
-        float moveX = 0f;
-        float moveY = 0f;
+        // 2. Анимация бега
+        animator.SetFloat("Speed", movement.sqrMagnitude);
 
-        // Эквивалент GetAxisRaw - проверяем нажатие клавиш вручную
-        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) moveX += 1;
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) moveX -= 1;
-        if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) moveY += 1;
-        if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) moveY -= 1;
+        // 3. Поворот (Flip) по мышке
+        FlipTowardsMouse();
+    }
 
-        movement = new Vector2(moveX, moveY);
+    void FlipTowardsMouse()
+    {
+        if (Mouse.current == null) return;
+
+        // Получаем позицию мыши в мире
+        Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+        Vector3 mouseWorldPos = mainCam.ScreenToWorldPoint(mouseScreenPos);
+
+        // Сравниваем X координаты
+        // Если мышь правее игрока (mouse.x > transform.x) -> смотрим вправо (flipX = false)
+        // Если мышь левее игрока (mouse.x < transform.x) -> смотрим влево (flipX = true)
+        
+        if (mouseWorldPos.x < transform.position.x)
+        {
+            sr.flipX = true;  // Отразить (смотрим влево)
+        }
+        else
+        {
+            sr.flipX = false; // Не отражать (смотрим вправо, как в оригинале)
+        }
     }
 
     void FixedUpdate()
