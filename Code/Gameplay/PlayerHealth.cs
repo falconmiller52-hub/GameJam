@@ -32,11 +32,9 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         isDead = true;
-        // Отключаем управление, чтобы игрок не дергался
         GetComponent<PlayerMovement>().enabled = false;
         GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
-
-        StartCoroutine(DeathSequence());
+        // ...
     }
 
     IEnumerator DeathSequence()
