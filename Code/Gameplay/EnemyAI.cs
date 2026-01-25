@@ -1,56 +1,52 @@
-using UnityEngine;
+using UnityEngine; // Эта строка обязательна!
 
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Settings")]
-    public float speed = 2f; // Скорость врага (медленнее игрока)
-    public int damage = 1;   // Сила укуса
-
-    private Transform playerTarget;
+    public Transform playerTarget;
+    public float speed = 2f;
     private Rigidbody2D rb;
 
-    void Start()
+    private float flipDelay = 0.1f;
+    private float spawnTime; // Время рождения
+    private bool hasFlipped = false;
+
+void Start()
+{
+    rb = GetComponent<Rigidbody2D>();
+    
+    // !!! ВОТ ЭТА СТРОКА КРИТИЧЕСКИ ВАЖНА !!!
+    spawnTime = Time.time; 
+    // Без неё задержка не работает!
+
+    if (playerTarget == null)
     {
-        rb = GetComponent<Rigidbody2D>();
-        
-        // Враг сам ищет игрока по тегу, который мы поставили в Шаге 1
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        
-        if (playerObj != null)
-        {
-            playerTarget = playerObj.transform;
-        }
-        else
-        {
-            Debug.LogError("ВРАГ: Не могу найти игрока! Вы забыли поставить тег 'Player'?");
-        }
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null) playerTarget = player.transform;
     }
+}
 
     void FixedUpdate()
     {
-        // Если игрока нет (убит) — стоим на месте
         if (playerTarget == null) return;
 
-        // 1. Движение к игроку
-        // MoveTowards плавно меняет позицию от текущей к цели
+        // Двигаем врага к игроку
         Vector2 newPos = Vector2.MoveTowards(rb.position, playerTarget.position, speed * Time.fixedDeltaTime);
         rb.MovePosition(newPos);
-    }
 
-    // Обработка столкновений
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        // Проверяем, врезались ли мы именно в игрока
-        if (collision.gameObject.CompareTag("Player"))
+        // Ждем 0.1 сек после спавна перед тем как разрешить поворот спрайта
+        if (!hasFlipped && Time.time > spawnTime + flipDelay)
         {
-            Debug.Log("ВРАГ: Кусь!");
-            
-            // Получаем скрипт здоровья с объекта, в который врезались
-            PlayerHealth healthScript = collision.gameObject.GetComponent<PlayerHealth>();
-            
-            if (healthScript != null)
+            hasFlipped = true;
+        }
+
+if (hasFlipped)
+        {
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr != null)
             {
-                healthScript.TakeDamage(damage);
+                // Поменяли знак < на >. Теперь логика зеркальная.
+                // Попробуйте этот вариант, если враг смотрит "жопой" к игроку.
+                sr.flipX = playerTarget.position.x > transform.position.x;
             }
         }
     }
