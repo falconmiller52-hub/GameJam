@@ -85,7 +85,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 541a578118a01974d94f3690aa1ba0de, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   playerTarget: {fileID: 0}
-  speed: 2
+  speed: 6
 --- !u!114 &1150765157986394481
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -124,6 +124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   health: 1
+  deathSound: {fileID: 8300000, guid: d2f1746055f9233479bbc3e0199c7b60, type: 3}
 --- !u!114 &6067227316894041601
 MonoBehaviour:
   m_ObjectHideFlags: 0

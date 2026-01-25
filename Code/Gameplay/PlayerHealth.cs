@@ -6,10 +6,12 @@ public class PlayerHealth : MonoBehaviour
 {
     public int maxHealth = 10;
     public int currentHealth;
-    
-    // Ссылка на панель затемнения в Canvas уровня (если есть)
-    // Если нет, можно сделать просто резкий переход
-    public GameObject deathFadePanel; 
+
+    [Header("UI Settings")]
+    public GameObject deathFadePanel; // Ссылка на панель затемнения (если есть)
+
+    [Header("Audio")]
+    public AudioClip deathSound; // Звук смерти игрока
 
     private bool isDead = false;
 
@@ -23,6 +25,9 @@ public class PlayerHealth : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= damage;
+        
+        // Можно добавить звук получения урона (хрюканье) здесь
+        
         if (currentHealth <= 0)
         {
             Die();
@@ -32,27 +37,48 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         isDead = true;
-        GetComponent<PlayerMovement>().enabled = false;
-        GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
-        // ...
+
+        // Отключаем управление движением
+        var movement = GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = false;
+
+        // Отключаем физику (остановка)
+        var rb = GetComponent<Rigidbody2D>();
+        if (rb != null) rb.linearVelocity = Vector2.zero;
+
+        // Отключаем атаку
+        var attack = GetComponent<PlayerAttack>();
+        if (attack != null) attack.enabled = false;
+
+        // Проигрываем анимацию смерти (если есть)
+        var anim = GetComponent<Animator>();
+        if (anim != null) anim.SetTrigger("Die");
+
+        // ЗВУК СМЕРТИ
+        if (deathSound != null)
+        {
+            AudioSource.PlayClipAtPoint(deathSound, transform.position, 1.0f);
+        }
+
+        // Запускаем последовательность Game Over
+        StartCoroutine(DeathSequence());
     }
 
+    // ВОТ ЭТОТ МЕТОД, КОТОРОГО НЕ ХВАТАЛО:
     IEnumerator DeathSequence()
     {
-        // 1. Пауза ("повиснуть на пару секунд")
-        // Можно использовать Time.timeScale = 0, но тогда корутины остановятся.
-        // Лучше просто подождать в реальном времени.
+        // 1. Ждем пару секунд, пока проиграется анимация смерти
         yield return new WaitForSeconds(2f);
 
-        // 2. Затемнение (если панель назначена)
+        // 2. Включаем затемнение (если оно есть)
         if (deathFadePanel != null)
         {
             deathFadePanel.SetActive(true);
-            // Тут можно добавить плавное появление alpha от 0 до 1, но для простоты включим сразу
-            yield return new WaitForSeconds(1f); 
+            yield return new WaitForSeconds(1f); // Ждем пока игрок осознает тщетность бытия
         }
 
-        // 3. Загрузка сцены диалога
-        SceneManager.LoadScene("DeathDialogueScene");
+        // 3. Загружаем сцену смерти или меню
+        // Убедитесь, что сцена с таким именем добавлена в File -> Build Settings
+        SceneManager.LoadScene("DeathDialogueScene"); 
     }
 }

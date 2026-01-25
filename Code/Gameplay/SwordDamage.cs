@@ -22,38 +22,44 @@ public class SwordDamage : MonoBehaviour
         hitEnemies.Clear();
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+void OnTriggerEnter2D(Collider2D other)
+{
+    // Игнорируем игрока и границы камеры
+    if (other.CompareTag("Player") || other.name.Contains("CameraBounds")) return;
+    
+    // Игнорируем триггеры
+    if (other.isTrigger) return;
+    
+    // Проверяем, не били ли уже этого врага
+    if (hitEnemies.Contains(other.gameObject)) return;
+
+    // Универсальный поиск компонента здоровья
+    EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+    
+    Debug.Log("Найден EnemyHealth на " + other.name + ": " + (enemyHealth != null));
+
+    if (enemyHealth != null)
     {
-        if (other.CompareTag("Player")) return;
+        Debug.Log("Наносим " + damageAmount + " урона врагу " + other.name);
         
-        // 2. Игнорируем триггеры
-        if (other.isTrigger) return;
-        // Проверяем, не били ли мы уже этого врага в этом замахе
-        if (hitEnemies.Contains(other.gameObject)) return;
-
-        // Ищем скрипт здоровья врага (у вас он может называться EnemyHealth или просто EnemyAI)
-        // Допустим, у врага есть скрипт EnemyHealth.
-        EnemyHealth enemy = other.GetComponent<EnemyHealth>();
+        // Наносим урон
+        enemyHealth.TakeDamage(damageAmount);
         
-        if (enemy != null)
+        // Запоминаем для защиты от спама
+        hitEnemies.Add(other.gameObject);
+        
+        // Knockback
+        Rigidbody2D enemyRB = other.GetComponent<Rigidbody2D>();
+        if (enemyRB != null)
         {
-            // Наносим урон
-            enemy.TakeDamage(damageAmount);
-            
-            // Запоминаем, что этого парня мы уже ударили
-            hitEnemies.Add(other.gameObject);
-
-            // ОТБРАСЫВАНИЕ (Knockback)
-            Rigidbody2D enemyRB = other.GetComponent<Rigidbody2D>();
-            if (enemyRB != null)
-            {
-                // Вектор от меча к врагу
-                Vector2 knockbackDir = (other.transform.position - transform.position).normalized;
-                
-                // Прикладываем импульс
-                // ForceMode2D.Impulse - мгновенный толчок
-                enemyRB.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
-            }
+            Vector2 knockbackDir = (other.transform.position - transform.position).normalized;
+            enemyRB.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
         }
     }
+    else
+    {
+        Debug.LogWarning("На объекте " + other.name + " НЕТ компонента EnemyHealth!");
+    }
+}
+
 }
