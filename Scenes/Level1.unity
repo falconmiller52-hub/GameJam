@@ -1085,23 +1085,23 @@ MonoBehaviour:
     waveTransitionIndex: 0
     enemySpawns:
     - enemyPrefab: {fileID: 3466053091668168829, guid: 17afae214b640e84c894da35956958f8, type: 3}
-      count: 16
+      count: 8
   - waveName: Wave2
+    waveTransitionIndex: 0
+    enemySpawns:
+    - enemyPrefab: {fileID: 3466053091668168829, guid: 17afae214b640e84c894da35956958f8, type: 3}
+      count: 10
+    - enemyPrefab: {fileID: 4447964494523792105, guid: 9b9a62823a109184282a9f80d0279d18, type: 3}
+      count: 6
+  - waveName: Wave3
     waveTransitionIndex: 1
     enemySpawns:
     - enemyPrefab: {fileID: 3466053091668168829, guid: 17afae214b640e84c894da35956958f8, type: 3}
-      count: 20
+      count: 6
     - enemyPrefab: {fileID: 4447964494523792105, guid: 9b9a62823a109184282a9f80d0279d18, type: 3}
       count: 10
-  - waveName: Wave3
-    waveTransitionIndex: 2
-    enemySpawns:
-    - enemyPrefab: {fileID: 3466053091668168829, guid: 17afae214b640e84c894da35956958f8, type: 3}
-      count: 16
-    - enemyPrefab: {fileID: 4447964494523792105, guid: 9b9a62823a109184282a9f80d0279d18, type: 3}
-      count: 14
     - enemyPrefab: {fileID: 6777615991263897907, guid: 501a26b562edcd5499316681b470c8bb, type: 3}
-      count: 8
+      count: 2
   timeBetweenSpawns: 1
   timeBetweenWaves: 5
   currentWaveIndex: 0
@@ -1727,7 +1727,7 @@ Transform:
   m_GameObject: {fileID: 586017678}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.58, y: -5.82, z: 0}
+  m_LocalPosition: {x: 20.14, y: 2.3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3731,8 +3731,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0bbf47d8199d1d44be1060cd7e8ac30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 2
-  currentHealth: 2
+  maxHealth: 4
+  currentHealth: 4
   deathFadePanel: {fileID: 485729138}
   deathSound: {fileID: 8300000, guid: 92e87dd6df7bd42488f22a13ab246d80, type: 3}
   deathSceneName: DeathDialogue
@@ -4532,7 +4532,7 @@ Transform:
   m_GameObject: {fileID: 2070257220}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -19.11, y: -4.9, z: 0}
+  m_LocalPosition: {x: -24.31, y: 7.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
