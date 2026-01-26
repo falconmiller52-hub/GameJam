@@ -1,28 +1,25 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Если используете New Input System
+using UnityEngine.InputSystem;
 
-public class ReticleController : MonoBehaviour
+public class Reticle : MonoBehaviour
 {
+    private Camera mainCam;
+    
     void Start()
     {
-        // Скрываем системный курсор, так как у нас есть свой
-        Cursor.visible = false;
+        mainCam = Camera.main;
+        Cursor.visible = false;  // СКРЫВАЕМ системный
     }
 
     void Update()
     {
-        // 1. Получаем позицию мыши на экране (в пикселях)
-        // Для старой системы: Vector2 mousePos = Input.mousePosition;
-        // Для новой системы (раз у вас была ошибка, скорее всего активна она):
-        Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
-
-        // 2. Переводим экранные координаты (пиксели) в мировые (Unity Units)
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
-
-        // 3. Обнуляем Z, чтобы курсор не улетал вглубь камеры
-        worldPos.z = 0;
-
-        // 4. Применяем позицию
-        transform.position = worldPos;
+        // Следует за мышкой ВСЕГДА (даже в паузе)
+        if (mainCam != null && Mouse.current != null)
+        {
+            Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+            Vector3 worldPos = mainCam.ScreenToWorldPoint(mouseScreenPos);
+            worldPos.z = 0f;
+            transform.position = worldPos;
+        }
     }
 }

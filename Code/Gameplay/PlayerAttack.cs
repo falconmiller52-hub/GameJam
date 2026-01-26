@@ -35,17 +35,21 @@ private AudioSource audioSource;
         }
     }
 
-    void Update()
+void Update()
+{
+    // ← БЛОКИРУЕМ АТАКУ В ПАУЗЕ
+    if (PauseMenu.isPaused) return;
+    
+    if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
     {
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        if (Time.time >= nextAttackTime)
         {
-            if (Time.time >= nextAttackTime)
-            {
-                Attack();
-                nextAttackTime = Time.time + attackRate;
-            }
+            Attack();
+            nextAttackTime = Time.time + attackRate;
         }
     }
+}
+
 
     void Attack()
     {

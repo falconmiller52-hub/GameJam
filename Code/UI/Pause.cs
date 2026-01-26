@@ -8,25 +8,31 @@ public class PauseMenu : MonoBehaviour
     public GameObject pauseMenuUI;
 
     [Header("Audio Settings")]
-    public AudioClip pauseSFX;       // Звук "пшшш" при открытии/закрытии
-    public AudioSource musicSource;  // Ссылка на музыку уровня (чтобы её останавливать)
-    
-    private AudioSource sfxSource;   // Источник для проигрывания SFX меню
+    public AudioClip pauseSFX;
+    public AudioClip buttonSFX;
+    public float buttonVolume = 0.6f;
+    public AudioSource musicSource;
+
+    [Header("Gameplay")]
+    public GameObject reticleObject;
+
+    private AudioSource sfxSource;
     public static bool isPaused = false;
 
     void Start()
     {
-        // Создаем AudioSource для звуков меню "на лету", если его нет
         sfxSource = gameObject.AddComponent<AudioSource>();
         sfxSource.playOnAwake = false;
 
-        // Ищем музыку уровня автоматически, если вы забыли перетащить её вручную
         if (musicSource == null)
         {
-            // Ищем объект с именем "LevelMusic" (как мы называли ранее)
             GameObject musicObj = GameObject.Find("LevelMusic");
-            if (musicObj != null)
-                musicSource = musicObj.GetComponent<AudioSource>();
+            if (musicObj != null) musicSource = musicObj.GetComponent<AudioSource>();
+        }
+
+        if (reticleObject == null)
+        {
+            reticleObject = GameObject.Find("Reticle");
         }
 
         Resume();
@@ -34,10 +40,13 @@ public class PauseMenu : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (!isPaused && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            if (isPaused) Resume();
-            else Pause();
+            Pause();
+        }
+        else if (isPaused && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Resume();
         }
     }
 
@@ -47,24 +56,38 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
 
-        // 1. Воспроизводим звук меню (если он есть)
-        if (pauseSFX != null) sfxSource.PlayOneShot(pauseSFX);
+        // Reticle нормальный порядок
+        FixReticleOrder(10);
 
-        // 2. Возвращаем музыку (UnPause)
+        if (pauseSFX != null) sfxSource.PlayOneShot(pauseSFX);
         if (musicSource != null) musicSource.UnPause();
+            Cursor.visible = true; 
     }
 
-    void Pause()
+    private void Pause()
     {
         pauseMenuUI.SetActive(true);
         Time.timeScale = 0f;
         isPaused = true;
 
-        // 1. Воспроизводим звук меню
-        if (pauseSFX != null) sfxSource.PlayOneShot(pauseSFX);
+        // Reticle ПОВЕРХ Dimmer (Player layer)
+        FixReticleOrder(100);
 
-        // 2. Ставим музыку на Паузу (не Stop, а Pause!)
+        if (pauseSFX != null) sfxSource.PlayOneShot(pauseSFX);
         if (musicSource != null) musicSource.Pause();
+    }
+
+    private void FixReticleOrder(int order)
+    {
+        if (reticleObject != null)
+        {
+            SpriteRenderer sr = reticleObject.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sortingLayerName = "Player";
+                sr.sortingOrder = order;
+            }
+        }
     }
 
     public void LoadMainMenu()
@@ -80,5 +103,13 @@ public class PauseMenu : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
+    }
+
+    public void PlayButtonSound()
+    {
+        if (buttonSFX != null && sfxSource != null)
+        {
+            sfxSource.PlayOneShot(buttonSFX, buttonVolume);
+        }
     }
 }
