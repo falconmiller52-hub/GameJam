@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5113636392993235905}
   - component: {fileID: 530477647255399535}
   - component: {fileID: 8156927174432120512}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Enemy2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   playerTarget: {fileID: 0}
-  speed: 6
+  speed: 3
 --- !u!114 &1150765157986394481
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,8 +123,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d7c16f1843524348990cc4babc29b0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  health: 1
+  health: 2
   deathSound: {fileID: 8300000, guid: d2f1746055f9233479bbc3e0199c7b60, type: 3}
+  damageColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
 --- !u!114 &6067227316894041601
 MonoBehaviour:
   m_ObjectHideFlags: 0

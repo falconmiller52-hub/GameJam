@@ -1740,7 +1740,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &647204257
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1774,7 +1774,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2130,7 +2130,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: e14665aa19cec264593924a30cf183fc, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.07
+  m_Volume: 0.09
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2465,7 +2465,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1229364171}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WeaponContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2635,7 +2635,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1370814345}
   - component: {fileID: 1370814346}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WeaponPivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2970,7 +2970,7 @@ GameObject:
   - component: {fileID: 1535656020}
   - component: {fileID: 1535656021}
   - component: {fileID: 1535656022}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -3137,7 +3137,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bd7cf5d59c238d46a068d5693c1804b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  moveSpeed: 15
+  moveSpeed: 13
+  dashSpeed: 23
+  dashDuration: 0.45
+  dashCooldown: 0.5
+  isDashing: 0
   rb: {fileID: 0}
   animator: {fileID: 0}
   sr: {fileID: 0}
@@ -3170,8 +3174,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   weaponAnimator: {fileID: 1690358659}
-  attackRate: 0.5
+  attackRate: 0.3
   attackSound: {fileID: 8300000, guid: 205c7f9cf3e8a604a99e992f9f0d6168, type: 3}
+  attackVolume: 0.15
 --- !u!95 &1535656021
 Animator:
   serializedVersion: 7
@@ -3473,7 +3478,7 @@ GameObject:
   - component: {fileID: 1690358657}
   - component: {fileID: 1690358659}
   - component: {fileID: 1690358660}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: 01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3635,7 +3640,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwordDamage
   damageAmount: 1
-  knockbackForce: 2
+  knockbackForce: 15
 --- !u!1 &1770285884
 GameObject:
   m_ObjectHideFlags: 0

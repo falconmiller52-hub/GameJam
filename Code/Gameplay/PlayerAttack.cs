@@ -4,30 +4,39 @@ using UnityEngine.InputSystem;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Settings")]
-    public Animator weaponAnimator; // Ссылка на АНИМАТОР КАТАНЫ (дочерний объект)
+    public Animator weaponAnimator; // Ссылка на АНИМАТОР КАТАНЫ
     public float attackRate = 0.5f; // Задержка между ударами
 
-    [Header("Audio")]
-    public AudioClip attackSound;   // Звук "Вжух"
-    private AudioSource audioSource; // Компонент для проигрывания
+[Header("Audio")]
+public AudioClip attackSound;   
+public float attackVolume = 0.5f; // ← НОВОЕ ПОЛЕ!
+private AudioSource audioSource; 
+
 
     private float nextAttackTime = 0f;
+    private SwordDamage swordDamageScript; // Ссылка на скрипт урона
 
     void Start()
     {
-        // Пытаемся найти AudioSource на игроке
         audioSource = GetComponent<AudioSource>();
-        
-        // Если забыли добавить в редакторе — добавляем программно, чтобы не было ошибок
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // --- НОВОЕ: Ищем скрипт урона один раз при старте ---
+        // Ищем в дочерних объектах (так как скрипт висит на Катане)
+        swordDamageScript = GetComponentInChildren<SwordDamage>();
+        
+        if (swordDamageScript == null && weaponAnimator != null)
+        {
+             // Если не нашли сразу, попробуем поискать на объекте аниматора
+             swordDamageScript = weaponAnimator.GetComponent<SwordDamage>();
         }
     }
 
     void Update()
     {
-        // Проверяем клик (LMB) + кулдаун
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (Time.time >= nextAttackTime)
@@ -40,18 +49,29 @@ public class PlayerAttack : MonoBehaviour
 
     void Attack()
     {
-        // 1. Запускаем анимацию (Ваш старый код)
+        // --- НОВОЕ: Сбрасываем список ударенных врагов перед новым ударом ---
+        if (swordDamageScript != null)
+        {
+            swordDamageScript.ResetAttack();
+        }
+        else
+        {
+            // На всякий случай пробуем найти еще раз, если при старте меча не было
+            swordDamageScript = GetComponentInChildren<SwordDamage>();
+            if (swordDamageScript != null) swordDamageScript.ResetAttack();
+        }
+
+        // Запускаем анимацию
         if (weaponAnimator != null)
         {
             weaponAnimator.SetTrigger("Attack");
         }
 
-        // 2. Проигрываем звук (Новый код)
+        // Проигрываем звук
         if (attackSound != null && audioSource != null)
         {
-            // Используем PlayOneShot, чтобы звуки могли накладываться
-            // Random.Range меняет высоту тона для разнообразия (опционально)
             audioSource.pitch = Random.Range(0.9f, 1.1f); 
+            audioSource.volume = attackVolume; // ← Применяем громкость
             audioSource.PlayOneShot(attackSound);
         }
     }

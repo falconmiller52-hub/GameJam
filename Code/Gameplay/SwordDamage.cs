@@ -1,65 +1,53 @@
 using UnityEngine;
-using System.Collections.Generic; // Нужно для списка
+using System.Collections.Generic;
 
 public class SwordDamage : MonoBehaviour
 {
     public int damageAmount = 3;
-    public float knockbackForce = 5f; // Сила отбрасывания
+    
+    [Header("Physics")]
+    public float knockbackForce = 10f; // Увеличьте это значение (было 5, стало 10)
 
-    // Список врагов, которых мы уже ударили за ЭТОТ замах.
-    // Чтобы один взмах не наносил урон 60 раз в секунду одному и тому же врагу.
     private List<GameObject> hitEnemies = new List<GameObject>();
 
-    // Вызывается автоматически, когда коллайдер включается (в начале удара)
-    void OnEnable()
+    public void ResetAttack()
     {
         hitEnemies.Clear();
     }
 
-    // Если мы выключаем коллайдер анимацией, список тоже лучше чистить
-    void OnDisable() 
+    void OnEnable() { hitEnemies.Clear(); }
+    void OnDisable() { hitEnemies.Clear(); }
+
+    void OnTriggerEnter2D(Collider2D other)
     {
-        hitEnemies.Clear();
-    }
+        if (other.CompareTag("Player") || other.name.Contains("CameraBounds")) return;
+        if (other.isTrigger) return;
+        if (hitEnemies.Contains(other.gameObject)) return;
 
-void OnTriggerEnter2D(Collider2D other)
-{
-    // Игнорируем игрока и границы камеры
-    if (other.CompareTag("Player") || other.name.Contains("CameraBounds")) return;
-    
-    // Игнорируем триггеры
-    if (other.isTrigger) return;
-    
-    // Проверяем, не били ли уже этого врага
-    if (hitEnemies.Contains(other.gameObject)) return;
-
-    // Универсальный поиск компонента здоровья
-    EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
-    
-    Debug.Log("Найден EnemyHealth на " + other.name + ": " + (enemyHealth != null));
-
-    if (enemyHealth != null)
-    {
-        Debug.Log("Наносим " + damageAmount + " урона врагу " + other.name);
+        EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
         
-        // Наносим урон
-        enemyHealth.TakeDamage(damageAmount);
-        
-        // Запоминаем для защиты от спама
-        hitEnemies.Add(other.gameObject);
-        
-        // Knockback
-        Rigidbody2D enemyRB = other.GetComponent<Rigidbody2D>();
-        if (enemyRB != null)
+        if (enemyHealth != null)
         {
-            Vector2 knockbackDir = (other.transform.position - transform.position).normalized;
-            enemyRB.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
+            // 1. Урон
+            enemyHealth.TakeDamage(damageAmount);
+            hitEnemies.Add(other.gameObject);
+            
+            // 2. ОТБРАСЫВАНИЕ (Knockback)
+            Rigidbody2D enemyRB = other.GetComponent<Rigidbody2D>();
+            if (enemyRB != null)
+            {
+                // Фишка: Сначала останавливаем врага (Reset velocity)
+                enemyRB.linearVelocity = Vector2.zero;
+                
+                // Вычисляем направление от Игрока (или меча) к Врагу
+                Vector2 knockbackDir = (other.transform.position - transform.position).normalized;
+                
+                // Прикладываем импульс
+                enemyRB.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
+                
+                // Опционально: Можно временно отключить AI врага на 0.2 сек, 
+                // чтобы он не сопротивлялся полету. Но это уже сложнее.
+            }
         }
     }
-    else
-    {
-        Debug.LogWarning("На объекте " + other.name + " НЕТ компонента EnemyHealth!");
-    }
-}
-
 }
