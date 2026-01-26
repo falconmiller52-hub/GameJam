@@ -82,7 +82,7 @@ public class GameOverDirector : MonoBehaviour
         yield return new WaitForSeconds(2f);
 
         // 8. Загружаем сцену Game Over (убедитесь, что она есть в Build Settings)
-        SceneManager.LoadScene("GameOverScene");
+        SceneManager.LoadScene("GameOver");
     }
 
     // Универсальная корутина для плавного перемещения объектов

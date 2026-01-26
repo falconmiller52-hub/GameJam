@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI; // ← ДОБАВИЛИ для CanvasGroup!
 using System.Collections;
 
 public class PlayerHealth : MonoBehaviour
@@ -8,16 +9,38 @@ public class PlayerHealth : MonoBehaviour
     public int currentHealth;
 
     [Header("UI Settings")]
-    public GameObject deathFadePanel; // Ссылка на панель затемнения (если есть)
+    public GameObject deathFadePanel; // Ссылка на панель затемнения
 
     [Header("Audio")]
     public AudioClip deathSound; // Звук смерти игрока
 
+    [Header("Death Scene")]
+    public string deathSceneName = "DeathDialogue"; // ← ГИБКОЕ ИМЯ!
+
+    [Header("Timing")]
+    public float waitBeforeFade = 2f;      // Ждать анимацию смерти
+    public float fadeDuration = 1f;        // Плавное затемнение
+
     private bool isDead = false;
+    private Animator anim;
+    private Rigidbody2D rb;
+    private CanvasGroup fadeGroup;         // ← CanvasGroup для плавности!
 
     void Start()
     {
         currentHealth = maxHealth;
+        
+        anim = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+        
+        // Настраиваем панель затемнения
+        if (deathFadePanel != null)
+        {
+            fadeGroup = deathFadePanel.GetComponent<CanvasGroup>();
+            if (fadeGroup == null) fadeGroup = deathFadePanel.AddComponent<CanvasGroup>();
+            fadeGroup.alpha = 0f;  // Прозрачная на старте
+            fadeGroup.gameObject.SetActive(false);
+        }
     }
 
     public void TakeDamage(int damage)
@@ -43,7 +66,6 @@ public class PlayerHealth : MonoBehaviour
         if (movement != null) movement.enabled = false;
 
         // Отключаем физику (остановка)
-        var rb = GetComponent<Rigidbody2D>();
         if (rb != null) rb.linearVelocity = Vector2.zero;
 
         // Отключаем атаку
@@ -51,7 +73,6 @@ public class PlayerHealth : MonoBehaviour
         if (attack != null) attack.enabled = false;
 
         // Проигрываем анимацию смерти (если есть)
-        var anim = GetComponent<Animator>();
         if (anim != null) anim.SetTrigger("Die");
 
         // ЗВУК СМЕРТИ
@@ -64,21 +85,31 @@ public class PlayerHealth : MonoBehaviour
         StartCoroutine(DeathSequence());
     }
 
-    // ВОТ ЭТОТ МЕТОД, КОТОРОГО НЕ ХВАТАЛО:
     IEnumerator DeathSequence()
     {
-        // 1. Ждем пару секунд, пока проиграется анимация смерти
-        yield return new WaitForSeconds(2f);
+        // 1. Ждем анимацию смерти (твоя логика)
+        yield return new WaitForSeconds(waitBeforeFade);
 
-        // 2. Включаем затемнение (если оно есть)
+        // 2. ПЛАВНОЕ затемнение (улучшение!)
         if (deathFadePanel != null)
         {
             deathFadePanel.SetActive(true);
-            yield return new WaitForSeconds(1f); // Ждем пока игрок осознает тщетность бытия
+            
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                fadeGroup.alpha = Mathf.Clamp01(elapsed / fadeDuration);
+                yield return null;
+            }
+        }
+        else
+        {
+            // Fallback: просто ждем
+            yield return new WaitForSeconds(fadeDuration);
         }
 
-        // 3. Загружаем сцену смерти или меню
-        // Убедитесь, что сцена с таким именем добавлена в File -> Build Settings
-        SceneManager.LoadScene("DeathDialogueScene"); 
+        // 3. Загружаем ТВОЮ сцену смерти (гибко!)
+        SceneManager.LoadScene(deathSceneName);
     }
 }

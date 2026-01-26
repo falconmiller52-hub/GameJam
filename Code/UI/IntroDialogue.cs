@@ -1,69 +1,148 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEngine.InputSystem; // Для работы с новой системой ввода
+using UnityEngine.InputSystem;
 
 public class IntroDialogue : MonoBehaviour
 {
     [Header("UI Elements")]
-    public TextMeshProUGUI textDisplay; // Ссылка на текстовое поле
-    public GameObject startButton;      // Кнопка, появляющаяся в конце (может быть null)
-    public float typingSpeed = 0.05f;   // Скорость печати букв
+    public TextMeshProUGUI textDisplay;
+    public GameObject startButton;  // FIGHT кнопка
+    public float typingSpeed = 0.05f;
 
     [Header("Content")]
     [TextArea(3, 10)]
-    public string[] sentences;          // Массив фраз
+    public string[] sentences;
 
-    // Публичный флаг, чтобы другие скрипты (например, GameOverDirector) знали, что диалог кончился
+    [Header("Undertale Voice")]
+    public AudioClip voiceClip;
+    public float voicePitchVariation = 0.2f;
+    public float voiceVolume = 0.7f;
+
+    [Header("Землетрясение (вступление)")]
+    public AudioClip earthquakeSound;
+    public Transform background;
+    public float shakeIntensity = 0.2f;
+    public float shakeDuration = 0.3f;
+
+    [Header("Fight Button Sound")]
+    public AudioClip fightSound;
+    public float fightVolume = 1.2f;
+
+    [Header("Monster Animation (Fallback)")]
+    public Transform monsterTransform;
+    public float monsterPulseSpeed = 3f;
+    public float monsterPulseScale = 1.2f;
+
+    [Header("Monster Animator (Primary)")]
+    public Animator monsterAnimator;
+    public string fightTriggerName = "FightReady";
+
+    [Header("Fade Transition")]
+    public CanvasGroup fadePanel;
+    public float fadeDuration = 1f;
+    public string nextSceneName = "MainLevel";
+
     public bool IsFinished = false;
 
     private int index;
     private bool isTyping;
-    private bool isDialogueActive = false; // "Рубильник", разрешающий обработку кликов
+    private bool isDialogueActive = false;
+    private AudioSource audioSource;
+    private bool isMonsterAnimating = false;
 
     void Start()
     {
-        // При старте уровня диалог должен молчать и ждать команды
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+
         if (startButton != null) 
+        {
             startButton.SetActive(false);
+            Button fightBtn = startButton.GetComponent<Button>();
+            if (fightBtn != null)
+            {
+                fightBtn.onClick.AddListener(() => PlayFightSound());
+            }
+        }
         
         textDisplay.text = "";
         isDialogueActive = false;
         IsFinished = false;
     }
 
-    // Метод для внешнего запуска диалога (из PreIntroSequence или GameOverDirector)
+    void PlayFightSound()
+    {
+        if (fightSound != null)
+        {
+            audioSource.pitch = Random.Range(0.95f, 1.05f);
+            audioSource.PlayOneShot(fightSound, fightVolume);
+        }
+        
+        // Затемнение + загрузка уровня!
+        StartCoroutine(FadeToLevel());
+    }
+
+    IEnumerator FadeToLevel()
+    {
+        if (fadePanel == null)
+        {
+            SceneManager.LoadScene(nextSceneName);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            fadePanel.alpha = Mathf.Clamp01(elapsed / fadeDuration);
+            yield return null;
+        }
+
+        SceneManager.LoadScene(nextSceneName);
+    }
+
     public void BeginDialogue()
     {
         index = 0;
         isDialogueActive = true;
         IsFinished = false;
-        
-        // Очищаем текст на всякий случай
         textDisplay.text = "";
-        
-        // Запускаем печать первой фразы
         StartCoroutine(Type());
+    }
+
+    public void PlayIntroClickEffect()
+    {
+        if (earthquakeSound != null)
+        {
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
+            audioSource.PlayOneShot(earthquakeSound);
+        }
+        if (background != null) StartCoroutine(ShakeBackground());
     }
 
     void Update()
     {
-        // Если диалог не активен — игнорируем любые действия
         if (!isDialogueActive) return;
 
-        // Проверка клика левой кнопкой мыши (New Input System)
+        if (isMonsterAnimating && monsterTransform != null)
+        {
+            float pulse = Mathf.Sin(Time.time * monsterPulseSpeed) * 0.1f;
+            monsterTransform.localScale = Vector3.one * (1f + pulse);
+        }
+
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (isTyping)
             {
-                // Если кликнули во время печати -> показываем всю фразу мгновенно
                 StopAllCoroutines();
                 textDisplay.text = sentences[index];
                 isTyping = false;
             }
             else
             {
-                // Если фраза уже напечатана -> переходим к следующей
                 NextSentence();
             }
         }
@@ -74,19 +153,39 @@ public class IntroDialogue : MonoBehaviour
         isTyping = true;
         textDisplay.text = "";
 
-        // Посимвольный вывод текста
         foreach (char letter in sentences[index].ToCharArray())
         {
             textDisplay.text += letter;
+            
+            if (voiceClip != null)
+            {
+                audioSource.pitch = 1f + Random.Range(-voicePitchVariation, voicePitchVariation);
+                audioSource.PlayOneShot(voiceClip, voiceVolume);
+            }
+            
             yield return new WaitForSeconds(typingSpeed);
         }
 
         isTyping = false;
     }
 
+    IEnumerator ShakeBackground()
+    {
+        Vector3 originalPos = background.localPosition;
+        float elapsed = 0f;
+        while (elapsed < shakeDuration)
+        {
+            float x = Random.Range(-1f, 1f) * shakeIntensity;
+            float y = Random.Range(-1f, 1f) * shakeIntensity;
+            background.localPosition = originalPos + new Vector3(x, y, 0f);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        background.localPosition = originalPos;
+    }
+
     void NextSentence()
     {
-        // Если это не последняя фраза в списке
         if (index < sentences.Length - 1)
         {
             index++;
@@ -95,17 +194,22 @@ public class IntroDialogue : MonoBehaviour
         }
         else
         {
-            // КОНЕЦ ДИАЛОГА
-            textDisplay.text = ""; // Очищаем текст (или можно оставить последнюю фразу)
-            
-            // Если есть кнопка (например, "Играть" в меню) — показываем её
+            textDisplay.text = "";
             if (startButton != null) 
+            {
                 startButton.SetActive(true);
-            
-            // Выключаем активность диалога, чтобы клики больше не обрабатывались
+                
+                // Animator триггер
+                if (monsterAnimator != null)
+                {
+                    monsterAnimator.SetTrigger(fightTriggerName);
+                }
+                else if (monsterTransform != null)
+                {
+                    isMonsterAnimating = true;
+                }
+            }
             isDialogueActive = false;
-            
-            // Ставим флаг завершения (для катсцен)
             IsFinished = true;
         }
     }

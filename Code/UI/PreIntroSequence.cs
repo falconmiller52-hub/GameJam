@@ -11,7 +11,7 @@ public class PreIntroSequence : MonoBehaviour
     public GameObject dialogueVisuals; 
 
     [Header("Audio")]
-    public AudioSource menuMusic; // НОВОЕ: Ссылка на музыку
+    public AudioSource menuMusic;
 
     [Header("Settings")]
     public float waitTime = 3f;
@@ -60,6 +60,12 @@ public class PreIntroSequence : MonoBehaviour
 
     void NextPhase()
     {
+        // НОВОЕ: Землетрясение ПРИ КЛИКЕ на "Нажмите..."!
+        if (dialogueScript != null)
+        {
+            dialogueScript.PlayIntroClickEffect();
+        }
+
         waitingForClick = false;
         centerText.gameObject.SetActive(false);
         centerText.color = originalColor; 
@@ -92,7 +98,6 @@ public class PreIntroSequence : MonoBehaviour
         if(dialogueVisuals != null) 
             dialogueVisuals.SetActive(true);
         
-        // НОВОЕ: Запускаем музыку
         if (menuMusic != null)
         {
             menuMusic.Play();

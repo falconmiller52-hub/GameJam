@@ -19,9 +19,13 @@ public class PlayerMovement : MonoBehaviour
     public Animator animator;
     public SpriteRenderer sr;
     
+    [Header("Tutorial")]
+    public PlayerTutorial tutorial;  // ← ПРЯМАЯ ССЫЛКА!
+
     private Vector2 moveInput;
     private Camera mainCam;
     private bool canDash = true;
+    private bool hasDashed = false;
 
     void Awake()
     {
@@ -43,9 +47,6 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // ✅ ВВОД РАБОТАЕТ ВСЕГДА (даже пауза)
-        // ❌ УБРАЛИ: if (PauseMenu.isPaused) return;
-
         if (isDashing) return;
 
         // WASD ввод
@@ -57,7 +58,6 @@ public class PlayerMovement : MonoBehaviour
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) x = -1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) x = 1f;
             
-            // DASH ТОЛЬКО вне паузы
             if (!PauseMenu.isPaused && Keyboard.current.spaceKey.wasPressedThisFrame && canDash)
             {
                 StartCoroutine(Dash());
@@ -78,8 +78,7 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        // ✅ ФИЗИКА БЛОКИРУЕТСЯ в паузе
-        if (PauseMenu.isPaused || isDashing) return;
+        if (PauseMenu.isPaused || isDashing || Time.timeScale == 0f) return;
 
         if (rb != null)
         {
@@ -93,6 +92,23 @@ public class PlayerMovement : MonoBehaviour
         Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
         Vector3 mouseWorldPos = mainCam.ScreenToWorldPoint(mouseScreenPos);
         sr.flipX = mouseWorldPos.x < transform.position.x;
+    }
+
+    // ✅ ПУБЛИЧНЫЙ метод для туториала!
+    public void NotifyTutorialDashComplete()
+    {
+        Debug.Log("Dash завершен! Уведомляем туториал.");
+        hasDashed = true;
+        
+        if (tutorial != null)
+        {
+            tutorial.OnFirstDash();
+            Debug.Log("Туториал уведомлен!");
+        }
+        else
+        {
+            Debug.LogWarning("PlayerTutorial не назначен в инспекторе!");
+        }
     }
 
     IEnumerator Dash()
@@ -120,6 +136,9 @@ public class PlayerMovement : MonoBehaviour
 
         rb.linearVelocity = Vector2.zero;
         isDashing = false;
+
+        // ✅ Уведомляем туториал о первом рывке!
+        NotifyTutorialDashComplete();
 
         yield return new WaitForSeconds(dashCooldown);
         canDash = true;
