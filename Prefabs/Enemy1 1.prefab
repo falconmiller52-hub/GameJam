@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   playerTarget: {fileID: 0}
-  speed: 2
+  speed: 3
 --- !u!114 &1564661429791119097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,7 +127,6 @@ MonoBehaviour:
   deathSound: {fileID: 8300000, guid: d2f1746055f9233479bbc3e0199c7b60, type: 3}
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
-  monsterTarget: {fileID: 0}
   flyToMonsterSpeed: 8
   flyDelay: 0.5
 --- !u!114 &6544763583359803657
