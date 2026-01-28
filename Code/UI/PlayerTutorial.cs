@@ -105,31 +105,28 @@ public class PlayerTutorial : MonoBehaviour
     }
 
     // ✅ Вызывается из PlayerMovement!
-    public void OnFirstDash()
+public void OnFirstDash()
+{
+    Debug.Log("OnFirstDash вызван!");
+    hasDashed = true;
+    
+    if (tooltipPanel != null)
     {
-        Debug.Log("OnFirstDash вызван!");
-        hasDashed = true;
-        
-        if (tooltipPanel != null)
-        {
-            tooltipPanel.SetActive(false);
-            Debug.Log("Tooltip отключен!");
-        }
-        
-        // ✅ Полная остановка корутин
-        if (typingCoroutine != null)
-        {
-            StopCoroutine(typingCoroutine);
-            typingCoroutine = null;
-        }
-        StopAllCoroutines();
-        
-        // Дополнительно: отключаем Canvas
-        if (tutorialCanvas != null)
-        {
-            tutorialCanvas.enabled = false;
-        }
+        tooltipPanel.SetActive(false);
+        Debug.Log("Tooltip отключен!");
     }
+    
+    if (typingCoroutine != null)
+    {
+        StopCoroutine(typingCoroutine);
+        typingCoroutine = null;
+    }
+    StopAllCoroutines();
+    
+    // 🔥 УДАЛИ ЭТУ СТРОКУ!
+    // tutorialCanvas.enabled = false;
+}
+
 
     void CreateTutorialUI()
     {

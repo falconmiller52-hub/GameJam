@@ -56,12 +56,13 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
 
-        // Reticle нормальный порядок
         FixReticleOrder(10);
 
         if (pauseSFX != null) sfxSource.PlayOneShot(pauseSFX);
         if (musicSource != null) musicSource.UnPause();
-            Cursor.visible = true; 
+        
+        // В геймплее курсор обычно скрыт, если у тебя свой прицел
+        Cursor.visible = false; 
     }
 
     private void Pause()
@@ -70,11 +71,13 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 0f;
         isPaused = true;
 
-        // Reticle ПОВЕРХ Dimmer (Player layer)
         FixReticleOrder(100);
 
         if (pauseSFX != null) sfxSource.PlayOneShot(pauseSFX);
         if (musicSource != null) musicSource.Pause();
+        
+        // В меню курсор должен быть виден, чтобы нажимать кнопки
+        Cursor.visible = true;
     }
 
     private void FixReticleOrder(int order)
@@ -90,19 +93,29 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
+    // Эта функция для кнопки "В Главное Меню"
     public void LoadMainMenu()
     {
         Time.timeScale = 1f;
         isPaused = false;
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(0); // Грузит сцену с индексом 0
     }
 
-    public void QuitGame()
+    // 🔥 Эту функцию привяжи к кнопке "Выход" (Quit)
+    public void QuitToDesktop()
     {
+        Debug.Log("Выход из игры...");
         Application.Quit();
+        
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
+    }
+    
+    // Оставим старое имя для совместимости, если где-то уже привязано
+    public void QuitGame()
+    {
+        QuitToDesktop();
     }
 
     public void PlayButtonSound()

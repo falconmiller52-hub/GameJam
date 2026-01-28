@@ -4,6 +4,9 @@ using System.Collections;
 public class EnemyHealth : MonoBehaviour
 {
     public int health = 5;
+    
+    // 🔥 ДОБАВЛЕНО: Публичное свойство, чтобы EnemyDamage мог проверить состояние
+    public bool IsDead { get { return isDead; } }
 
     [Header("Audio")]
     public AudioClip deathSound; 
@@ -39,18 +42,12 @@ public class EnemyHealth : MonoBehaviour
         if (monsterGO != null)
         {
             _monsterTarget = monsterGO.transform;
-            Debug.Log($"Monster найден для {gameObject.name}");
             return;
         }
         
         if (MonsterEater.Instance != null)
         {
             _monsterTarget = MonsterEater.Instance.transform;
-            Debug.Log("MonsterEater singleton найден");
-        }
-        else
-        {
-            Debug.LogWarning($"Monster не найден для {gameObject.name}");
         }
     }
 
@@ -93,10 +90,10 @@ public class EnemyHealth : MonoBehaviour
     {
         isDead = true;
 
-        // ✅ ВРЕМЕННО отключаем коллайдер (урон не спамится)
+        // Отключаем коллайдер сразу, чтобы враг перестал толкаться МГНОВЕННО
         if (col != null) 
         {
-            col.enabled = false;
+            col.enabled = false; 
             StartCoroutine(ReenableColliderForMonster());
         }
 
@@ -107,6 +104,8 @@ public class EnemyHealth : MonoBehaviour
         {
             rb.gravityScale = 0f;
             rb.linearDamping = 5f;
+            // Останавливаем врага, чтобы он не летел по инерции в игрока
+            rb.linearVelocity = Vector2.zero; 
         }
 
         if (anim != null) anim.SetTrigger("Die");
@@ -114,6 +113,7 @@ public class EnemyHealth : MonoBehaviour
 
         if (deathSound != null)
         {
+            // Создаем временный объект для звука, так как сам враг улетит
             GameObject soundObj = new GameObject("TempAudio");
             soundObj.transform.position = transform.position;
             AudioSource src = soundObj.AddComponent<AudioSource>();
@@ -132,18 +132,23 @@ public class EnemyHealth : MonoBehaviour
         {
             StartCoroutine(DestroyAfterAnim());
         }
-            var spawner = FindObjectOfType<WaveSpawner>();
-    spawner?.EnemyDied();
+        
+        var spawner = FindObjectOfType<WaveSpawner>();
+        spawner?.EnemyDied();
     }
 
-    // ✅ НОВЫЙ: Включаем коллайдер для MonsterEater через 0.1 сек
+    // ✅ ГЛАВНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ
     IEnumerator ReenableColliderForMonster()
     {
         yield return new WaitForSeconds(0.1f);
         if (col != null) 
         {
+            // 🔥 Делаем коллайдер ТРИГГЕРОМ!
+            // Триггеры не имеют физических коллизий (сквозь них проходят),
+            // но они ловятся событием OnTriggerEnter (у Монстра).
+            col.isTrigger = true; 
+            
             col.enabled = true;
-            Debug.Log("Коллайдер включен для MonsterEater");
         }
     }
 
@@ -155,15 +160,15 @@ public class EnemyHealth : MonoBehaviour
 
         rb.gravityScale = 0f;
         rb.linearDamping = 2f;
-        rb.angularDamping = 2f;  // ✅ ИСПРАВЛЕНО: angularDrag, не angularDamping
+        rb.angularDamping = 2f;
 
         float flyTime = 0f;
-        Vector2 monsterPos = (Vector2)_monsterTarget.position;
         
-        while (flyTime < 3f && Vector2.Distance(transform.position, monsterPos) > 0.5f)
+        while (flyTime < 3f) // Убрал проверку дистанции, пусть летит прямо в центр
         {
             if (rb == null || _monsterTarget == null) yield break;
             
+            Vector2 monsterPos = (Vector2)_monsterTarget.position;
             Vector2 direction = (monsterPos - (Vector2)transform.position).normalized;
             rb.linearVelocity = direction * flyToMonsterSpeed;
             
@@ -174,8 +179,6 @@ public class EnemyHealth : MonoBehaviour
             flyTime += Time.deltaTime;
             yield return null;
         }
-        
-        Debug.Log("Враг долетел до Монстра!");
     }
 
     IEnumerator DestroyAfterAnim()

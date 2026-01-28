@@ -6,6 +6,11 @@ public class MonsterEater : MonoBehaviour
     
     [Header("Feeding")]
     public AudioClip eatSound;
+    
+    // 🔥 ДОБАВЛЕНО: Ползунок громкости (от 0 до 2, где 1 = 100%)
+    [Range(0f, 2f)] 
+    public float eatVolume = 1.0f; 
+
     public ParticleSystem eatEffect;
     public float destroyDelay = 0.1f;
 
@@ -46,7 +51,8 @@ public class MonsterEater : MonoBehaviour
         if (eatSound != null)
         {
             audioSource.pitch = Random.Range(0.9f, 1.1f);
-            audioSource.PlayOneShot(eatSound, 1.2f);
+            // 🔥 ИЗМЕНЕНО: используем переменную вместо числа 1.2f
+            audioSource.PlayOneShot(eatSound, eatVolume);
         }
 
         if (eatEffect != null)

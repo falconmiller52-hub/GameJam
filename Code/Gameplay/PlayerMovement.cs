@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
+// 🔥 ДОБАВЛЕНО: Гарантируем, что AudioSource тоже будет на объекте
+[RequireComponent(typeof(AudioSource))] 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
@@ -14,18 +16,23 @@ public class PlayerMovement : MonoBehaviour
     public float dashCooldown = 1f;
     public bool isDashing = false;
 
+    [Header("Audio")] // 🔥 ДОБАВЛЕНО
+    public AudioClip dashSound; 
+    public float dashVolume = 0.8f;
+
     [Header("References")]
     public Rigidbody2D rb;
     public Animator animator;
     public SpriteRenderer sr;
     
     [Header("Tutorial")]
-    public PlayerTutorial tutorial;  // ← ПРЯМАЯ ССЫЛКА!
+    public PlayerTutorial tutorial;
 
     private Vector2 moveInput;
     private Camera mainCam;
     private bool canDash = true;
     private bool hasDashed = false;
+    private AudioSource audioSource; // 🔥 ДОБАВЛЕНО
 
     void Awake()
     {
@@ -33,6 +40,10 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         mainCam = Camera.main;
+
+        // 🔥 ДОБАВЛЕНО: Инициализация аудио
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
 
         rb.gravityScale = 0f;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -49,7 +60,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isDashing) return;
 
-        // WASD ввод
         float x = 0f, y = 0f;
         if (Keyboard.current != null)
         {
@@ -66,7 +76,6 @@ public class PlayerMovement : MonoBehaviour
         
         moveInput = new Vector2(x, y).normalized;
 
-        // Анимация
         if (animator != null)
         {
             bool isMoving = moveInput.sqrMagnitude > 0.01f;
@@ -94,7 +103,6 @@ public class PlayerMovement : MonoBehaviour
         sr.flipX = mouseWorldPos.x < transform.position.x;
     }
 
-    // ✅ ПУБЛИЧНЫЙ метод для туториала!
     public void NotifyTutorialDashComplete()
     {
         Debug.Log("Dash завершен! Уведомляем туториал.");
@@ -115,6 +123,14 @@ public class PlayerMovement : MonoBehaviour
     {
         canDash = false;
         isDashing = true;
+
+        // 🔥 ДОБАВЛЕНО: Воспроизведение звука
+        if (dashSound != null && audioSource != null)
+        {
+            // Немного меняем питч, чтобы звук не казался монотонным
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
+            audioSource.PlayOneShot(dashSound, dashVolume);
+        }
 
         Vector2 mousePos = mainCam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         Vector2 dashDir = (mousePos - (Vector2)transform.position).normalized;
@@ -137,7 +153,6 @@ public class PlayerMovement : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
         isDashing = false;
 
-        // ✅ Уведомляем туториал о первом рывке!
         NotifyTutorialDashComplete();
 
         yield return new WaitForSeconds(dashCooldown);

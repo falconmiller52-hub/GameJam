@@ -21,6 +21,7 @@ public class EnemySpawnData
     public int count = 5;
 }
 
+
 public class WaveSpawner : MonoBehaviour
 {
     [Header("UI")]
@@ -75,47 +76,61 @@ public class WaveSpawner : MonoBehaviour
         StartCoroutine(WaveSequence());
     }
 
-    IEnumerator WaveSequence()
+IEnumerator WaveSequence()
+{
+    while (currentWaveIndex < waves.Length)
     {
-        while (currentWaveIndex < waves.Length)
+        // 🔥 ПЕРВАЯ ВОЛНА (index 0) — БЕЗ ПЕРЕХОДА КАРТЫ
+        if (currentWaveIndex == 0)
         {
-            if (!firstWaveStarted)
-            {
-                // ✅ ПЕРВАЯ ВОЛНА: только предупреждение (без перехода)
-                yield return StartCoroutine(ShowWarning(waves[currentWaveIndex].waveName));
-                firstWaveStarted = true;
-            }
-            else
-            {
-                // ✅ ПОСЛЕ 1+ волны: переход + предупреждение
-                yield return StartCoroutine(PlayMapTransitionAnimation(
-                    waves[currentWaveIndex].waveTransitionIndex));
-                yield return StartCoroutine(ShowWarning(waves[currentWaveIndex].waveName));
-            }
-            
-            // Спавним волну
-            yield return StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-            
-            // Ждем окончания волны
-            while (waveActive && enemiesRemaining > 0)
-            {
-                yield return null;
-            }
-            
-            // Пауза между волнами
-            yield return new WaitForSeconds(timeBetweenWaves);
-            
-            currentWaveIndex++;
+            yield return StartCoroutine(ShowWarning(""));
+        }
+        else
+        {
+            // ВСЕ ОСТАЛЬНЫЕ ВОЛНЫ — С ПЕРЕХОДОМ КАРТЫ
+            yield return StartCoroutine(PlayMapTransitionAnimation(
+                waves[currentWaveIndex].waveTransitionIndex));
+            yield return StartCoroutine(ShowWarning(""));
         }
         
-        // Финальный Idle
-        if (mapAnimator != null)
+        // Спавним волну
+        yield return StartCoroutine(SpawnWave(waves[currentWaveIndex]));
+        
+        // 🔥 ЖДЕМ ОКОНЧАНИЯ ВОЛНЫ С ТИМАУТОМ (30 секунд)
+        float waveTimeout = 30f;
+        while (enemiesRemaining > 0 && waveTimeout > 0f)
         {
-            mapAnimator.SetTrigger(idleTrigger);
+            waveTimeout -= Time.deltaTime;
+            yield return null;
         }
         
-        Debug.Log("Все волны завершены!");
+        if (waveTimeout <= 0f)
+        {
+            Debug.LogWarning($"Волна {currentWaveIndex + 1} завершилась по таймауту! Осталось врагов: {enemiesRemaining}");
+            enemiesRemaining = 0; // Принудительно завершаем
+        }
+        else
+        {
+            Debug.Log($"Волна {currentWaveIndex + 1} завершена нормально");
+        }
+        
+        // Пауза между волнами
+        yield return new WaitForSeconds(timeBetweenWaves);
+        
+        currentWaveIndex++;
     }
+    
+    // Финальный Idle
+    if (mapAnimator != null)
+    {
+        mapAnimator.SetTrigger(idleTrigger);
+    }
+    
+    Debug.Log("Все волны завершены!");
+}
+
+
+
 
     // ✅ АНИМАЦИЯ ПЕРЕХОДА между волнами
     IEnumerator PlayMapTransitionAnimation(int transitionIndex)
@@ -138,65 +153,77 @@ public class WaveSpawner : MonoBehaviour
         mapAnimator.SetTrigger(idleTrigger);
     }
 
-    IEnumerator ShowWarning(string waveText)
+IEnumerator ShowWarning(string waveText)
+{
+    // 🔥 СБРОС: все волны независимы
+    waveActive = false;
+    enemiesRemaining = 0;
+    
+    if (warningSound != null)
+        audioSource.PlayOneShot(warningSound, 0.3f);
+    
+    // 🔥 АВТОМАТИЧЕСКИЙ ТЕКСТ
+    int waveNumber = currentWaveIndex + 1;
+    waveWarningText.text = $"ВОЛНА {waveNumber}";
+    
+    if (warningCanvasGroup != null)
     {
-        waveActive = false;
-        enemiesRemaining = 0;
-        
-        if (warningSound != null)
-            audioSource.PlayOneShot(warningSound, 0.3f);
-        
-        waveWarningText.text = $"ОНИ ИДУТ\n{waveText}";
-        
-        if (warningCanvasGroup != null)
-        {
-            warningCanvasGroup.alpha = 1f;
-            warningCanvasGroup.gameObject.SetActive(true);
-        }
-        
-        yield return new WaitForSeconds(warningDuration);
-        
-        if (warningCanvasGroup != null)
-        {
-            float fadeTime = 0.5f;
-            float elapsed = 0f;
-            float startAlpha = warningCanvasGroup.alpha;
-            
-            while (elapsed < fadeTime)
-            {
-                elapsed += Time.deltaTime;
-                warningCanvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, elapsed / fadeTime);
-                yield return null;
-            }
-            
-            warningCanvasGroup.alpha = 0f;
-            warningCanvasGroup.gameObject.SetActive(false);
-        }
+        warningCanvasGroup.alpha = 1f;
+        warningCanvasGroup.gameObject.SetActive(true);
+        warningCanvasGroup.blocksRaycasts = true; // Блокируем клики
+        warningCanvasGroup.interactable = true;
     }
+    
+    // 🔥 Используем unscaledDeltaTime, чтобы предупреждение работало на паузе
+    yield return new WaitForSecondsRealtime(warningDuration); // Не зависает при паузе
+    
+    if (warningCanvasGroup != null)
+    {
+        float fadeTime = 0.5f;
+        float elapsed = 0f;
+        float startAlpha = warningCanvasGroup.alpha;
+        
+        while (elapsed < fadeTime)
+        {
+            elapsed += Time.unscaledDeltaTime; // 🔥 Работает на паузе
+            warningCanvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, elapsed / fadeTime);
+            yield return null;
+        }
+        
+        warningCanvasGroup.alpha = 0f;
+        warningCanvasGroup.gameObject.SetActive(false);
+        warningCanvasGroup.blocksRaycasts = false;
+        warningCanvasGroup.interactable = false;
+    }
+}
 
-    IEnumerator SpawnWave(WaveData wave)
+
+IEnumerator SpawnWave(WaveData wave)
+{
+    Debug.Log($"Спавним волну: {wave.waveName}");
+    
+    // 🔥 ПОДСЧИТАЕМ ОБЩЕЕ КОЛИЧЕСТВО ДО СПАВНА
+    int totalEnemiesInWave = 0;
+    foreach (var spawnData in wave.enemySpawns)
     {
-        waveActive = true;
-        enemiesRemaining = 0;
-        
-        Debug.Log($"Спавним волну: {wave.waveName}");
-        
-        foreach (var spawnData in wave.enemySpawns)
+        totalEnemiesInWave += spawnData.count;
+    }
+    enemiesRemaining = totalEnemiesInWave; // ← ЗАДАЕМ ДОНАЧАЛО
+    
+    waveActive = true;
+    
+    foreach (var spawnData in wave.enemySpawns)
+    {
+        for (int i = 0; i < spawnData.count; i++)
         {
-            enemiesRemaining += spawnData.count;
-        }
-        
-        foreach (var spawnData in wave.enemySpawns)
-        {
-            for (int i = 0; i < spawnData.count; i++)
-            {
-                if (!waveActive) yield break;
-                
-                SpawnSingleEnemy(spawnData.enemyPrefab);
-                yield return new WaitForSeconds(timeBetweenSpawns);
-            }
+            SpawnSingleEnemy(spawnData.enemyPrefab);
+            yield return new WaitForSeconds(timeBetweenSpawns);
         }
     }
+    
+    // 🔥 НЕ ПРЕРЫВАЕМ! ДОВАРИВАЕМ ВСЕХ
+}
+
 
     void SpawnSingleEnemy(GameObject prefab)
     {
@@ -206,15 +233,16 @@ public class WaveSpawner : MonoBehaviour
         Instantiate(prefab, spawnPoints[randomSpawn].position, Quaternion.identity);
     }
 
-    public void EnemyDied()
+public void EnemyDied()
+{
+    enemiesRemaining = Mathf.Max(0, enemiesRemaining - 1); // ← Никогда не уйдет в минус!
+    Debug.Log($"Враг убит. Осталось: {enemiesRemaining}");
+    
+    if (enemiesRemaining <= 0)
     {
-        enemiesRemaining--;
-        Debug.Log($"Враг убит. Осталось: {enemiesRemaining}");
-        
-        if (enemiesRemaining <= 0)
-        {
-            waveActive = false;
-            Debug.Log("Волна завершена!");
-        }
+        waveActive = false;
+        Debug.Log("Волна завершена!");
     }
+}
+
 }
