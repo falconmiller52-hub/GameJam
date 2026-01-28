@@ -17,6 +17,10 @@ public class PreIntroSequence : MonoBehaviour
     public float waitTime = 3f;
     public float blinkSpeed = 5f;
 
+    [Header("Monster")]
+public SpriteRenderer monsterSpriteRenderer; // 🔥 Перетащи SpriteRenderer Монстра
+
+
     private int step = 0;
     private bool waitingForClick = false;
     private Color originalColor;
@@ -88,24 +92,31 @@ public class PreIntroSequence : MonoBehaviour
         ShowPhase(nextPhaseIndex);
     }
 
-    IEnumerator StartMainDialogue()
+IEnumerator StartMainDialogue()
+{
+    yield return new WaitForSeconds(waitTime);
+
+    centerText.text = "";
+    centerText.gameObject.SetActive(false);
+
+    if(dialogueVisuals != null) 
+        dialogueVisuals.SetActive(true);
+    
+    // 🔥 ПОКАЗЫВАЕМ МОНСТРА СРАЗУ ПЕРЕД ДИАЛОГОМ!
+    if (monsterSpriteRenderer != null)
     {
-        yield return new WaitForSeconds(waitTime);
-
-        centerText.text = "";
-        centerText.gameObject.SetActive(false);
-
-        if(dialogueVisuals != null) 
-            dialogueVisuals.SetActive(true);
-        
-        if (menuMusic != null)
-        {
-            menuMusic.Play();
-        }
-        
-        yield return null; 
-        
-        dialogueScript.BeginDialogue();
-        this.enabled = false;
+        monsterSpriteRenderer.enabled = true;
+        Debug.Log("Монстр показан перед диалогом!");
     }
+    
+    if (menuMusic != null)
+    {
+        menuMusic.Play();
+    }
+    
+    yield return null; 
+    
+    dialogueScript.BeginDialogue();
+    this.enabled = false;
+}
 }

@@ -16,6 +16,10 @@ public class IntroDialogue : MonoBehaviour
     [TextArea(3, 10)]
     public string[] sentences;
 
+    [Header("Monster Visibility")]
+public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer Монстра
+
+
     [Header("Undertale Voice")]
     public AudioClip voiceClip;
     public float voicePitchVariation = 0.2f;
@@ -57,7 +61,11 @@ public class IntroDialogue : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
-
+    // 🔥 СКРЫВАЕМ МОНСТРА В НАЧАЛЕ
+    if (monsterSpriteRenderer != null)
+    {
+        monsterSpriteRenderer.enabled = false;
+    }
         if (startButton != null) 
         {
             startButton.SetActive(false);
@@ -185,32 +193,37 @@ public class IntroDialogue : MonoBehaviour
     }
 
     void NextSentence()
+{
+    if (index < sentences.Length - 1)
     {
-        if (index < sentences.Length - 1)
-        {
-            index++;
-            textDisplay.text = "";
-            StartCoroutine(Type());
-        }
-        else
-        {
-            textDisplay.text = "";
-            if (startButton != null) 
-            {
-                startButton.SetActive(true);
-                
-                // Animator триггер
-                if (monsterAnimator != null)
-                {
-                    monsterAnimator.SetTrigger(fightTriggerName);
-                }
-                else if (monsterTransform != null)
-                {
-                    isMonsterAnimating = true;
-                }
-            }
-            isDialogueActive = false;
-            IsFinished = true;
-        }
+        index++;
+        
+        // 🔥 ПОКАЗЫВАЕМ МОНСТРА НА 3-Й РЕПЛИКЕ (index == 2)
+        // if (index == 1 && monsterSpriteRenderer != null)
+        
+        textDisplay.text = "";
+        StartCoroutine(Type());
     }
+    else
+    {
+        textDisplay.text = "";
+        if (startButton != null) 
+        {
+            startButton.SetActive(true);
+            
+            // Animator триггер
+            if (monsterAnimator != null)
+            {
+                monsterAnimator.SetTrigger(fightTriggerName);
+            }
+            else if (monsterTransform != null)
+            {
+                isMonsterAnimating = true;
+            }
+        }
+        isDialogueActive = false;
+        IsFinished = true;
+    }
+}
+
 }
