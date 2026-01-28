@@ -1454,7 +1454,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DynamicCamera
   player: {fileID: 1535656016}
-  reticle: {fileID: 0}
+  reticle: {fileID: 2084958124}
   bias: 0.25
   smoothSpeed: 5
   mapBounds: {fileID: 414618471}
@@ -4305,8 +4305,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efb91e4f0d6f36047a055697e81137c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReticleController
-  rectTransform: {fileID: 2084958124}
-  uiCamera: {fileID: 519420031}
 --- !u!1 &2111459841
 GameObject:
   m_ObjectHideFlags: 0
