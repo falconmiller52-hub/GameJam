@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   playerTarget: {fileID: 0}
-  speed: 5
+  speed: 4
 --- !u!114 &1150765157986394481
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,25 +1,23 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class Reticle : MonoBehaviour
 {
-    private Camera mainCam;
-    
+    private RectTransform rectTransform;
+
     void Start()
     {
-        mainCam = Camera.main;
-        Cursor.visible = false;  // СКРЫВАЕМ системный
+        Cursor.visible = false;
+        rectTransform = GetComponent<RectTransform>();
     }
 
     void Update()
     {
-        // Следует за мышкой ВСЕГДА (даже в паузе)
-        if (mainCam != null && Mouse.current != null)
+        if (Mouse.current != null)
         {
-            Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
-            Vector3 worldPos = mainCam.ScreenToWorldPoint(mouseScreenPos);
-            worldPos.z = 0f;
-            transform.position = worldPos;
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            rectTransform.position = mousePos;
         }
     }
 }

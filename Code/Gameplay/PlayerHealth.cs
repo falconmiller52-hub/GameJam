@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI; // ← ДОБАВИЛИ для CanvasGroup!
+using UnityEngine.UI;
 using System.Collections;
 
 public class PlayerHealth : MonoBehaviour
@@ -9,22 +9,30 @@ public class PlayerHealth : MonoBehaviour
     public int currentHealth;
 
     [Header("UI Settings")]
-    public GameObject deathFadePanel; // Ссылка на панель затемнения
+    public GameObject deathFadePanel;
 
     [Header("Audio")]
-    public AudioClip deathSound; // Звук смерти игрока
+    public AudioClip deathSound;
+    [Range(0f, 1f)] public float deathVolume = 1f; // 🔥 НОВАЯ НАСТРОЙКА ГРОМКОСТИ (0.0 - 1.0)
 
     [Header("Death Scene")]
-    public string deathSceneName = "DeathDialogue"; // ← ГИБКОЕ ИМЯ!
+    public string deathSceneName = "DeathDialogue";
 
     [Header("Timing")]
-    public float waitBeforeFade = 2f;      // Ждать анимацию смерти
-    public float fadeDuration = 1f;        // Плавное затемнение
+    public float waitBeforeFade = 2f;
+    public float fadeDuration = 1f;
+
+    [Header("Damage FX")]
+    public Color damageColor = Color.red;
+    public float flashDuration = 0.1f;
 
     private bool isDead = false;
     private Animator anim;
     private Rigidbody2D rb;
-    private CanvasGroup fadeGroup;         // ← CanvasGroup для плавности!
+    private CanvasGroup fadeGroup;
+    private SpriteRenderer spriteRend; 
+    private Color originalColor; 
+    private AudioSource audioSource; // 🔥 Ссылка на источник звука
 
     void Start()
     {
@@ -33,12 +41,21 @@ public class PlayerHealth : MonoBehaviour
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         
-        // Настраиваем панель затемнения
+        // Находим или добавляем AudioSource для качественного звука
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+
+        spriteRend = GetComponent<SpriteRenderer>();
+        if (spriteRend != null)
+        {
+            originalColor = spriteRend.color;
+        }
+        
         if (deathFadePanel != null)
         {
             fadeGroup = deathFadePanel.GetComponent<CanvasGroup>();
             if (fadeGroup == null) fadeGroup = deathFadePanel.AddComponent<CanvasGroup>();
-            fadeGroup.alpha = 0f;  // Прозрачная на старте
+            fadeGroup.alpha = 0f;  
             fadeGroup.gameObject.SetActive(false);
         }
     }
@@ -49,7 +66,10 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth -= damage;
         
-        // Можно добавить звук получения урона (хрюканье) здесь
+        if (currentHealth > 0 && spriteRend != null)
+        {
+            StartCoroutine(DamageFlash());
+        }
         
         if (currentHealth <= 0)
         {
@@ -57,40 +77,43 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    IEnumerator DamageFlash()
+    {
+        spriteRend.color = damageColor;
+        yield return new WaitForSeconds(flashDuration);
+        spriteRend.color = originalColor;
+    }
+
     void Die()
     {
         isDead = true;
 
-        // Отключаем управление движением
+        if (spriteRend != null) spriteRend.color = originalColor;
+
         var movement = GetComponent<PlayerMovement>();
         if (movement != null) movement.enabled = false;
 
-        // Отключаем физику (остановка)
         if (rb != null) rb.linearVelocity = Vector2.zero;
 
-        // Отключаем атаку
         var attack = GetComponent<PlayerAttack>();
         if (attack != null) attack.enabled = false;
 
-        // Проигрываем анимацию смерти (если есть)
         if (anim != null) anim.SetTrigger("Die");
 
-        // ЗВУК СМЕРТИ
-        if (deathSound != null)
+        // 🔥 ИСПОЛЬЗУЕМ PLAY ONE SHOT С ГРОМКОСТЬЮ
+        if (deathSound != null && audioSource != null)
         {
-            AudioSource.PlayClipAtPoint(deathSound, transform.position, 1.0f);
+            // Здесь мы передаем громкость из переменной deathVolume
+            audioSource.PlayOneShot(deathSound, deathVolume);
         }
 
-        // Запускаем последовательность Game Over
         StartCoroutine(DeathSequence());
     }
 
     IEnumerator DeathSequence()
     {
-        // 1. Ждем анимацию смерти (твоя логика)
         yield return new WaitForSeconds(waitBeforeFade);
 
-        // 2. ПЛАВНОЕ затемнение (улучшение!)
         if (deathFadePanel != null)
         {
             deathFadePanel.SetActive(true);
@@ -105,11 +128,9 @@ public class PlayerHealth : MonoBehaviour
         }
         else
         {
-            // Fallback: просто ждем
             yield return new WaitForSeconds(fadeDuration);
         }
 
-        // 3. Загружаем ТВОЮ сцену смерти (гибко!)
         SceneManager.LoadScene(deathSceneName);
     }
 }

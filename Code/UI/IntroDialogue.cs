@@ -17,8 +17,7 @@ public class IntroDialogue : MonoBehaviour
     public string[] sentences;
 
     [Header("Monster Visibility")]
-public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer Монстра
-
+    public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer Монстра
 
     [Header("Undertale Voice")]
     public AudioClip voiceClip;
@@ -42,7 +41,8 @@ public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer 
 
     [Header("Monster Animator (Primary)")]
     public Animator monsterAnimator;
-    public string fightTriggerName = "FightReady";
+    // Убедись, что это имя совпадает с параметром в Animator Controller!
+    public string fightTriggerName = "FightReady"; 
 
     [Header("Fade Transition")]
     public CanvasGroup fadePanel;
@@ -61,17 +61,21 @@ public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer 
     {
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
-    // 🔥 СКРЫВАЕМ МОНСТРА В НАЧАЛЕ
-    if (monsterSpriteRenderer != null)
-    {
-        monsterSpriteRenderer.enabled = false;
-    }
+
+        // 🔥 СКРЫВАЕМ МОНСТРА В НАЧАЛЕ
+        if (monsterSpriteRenderer != null)
+        {
+            monsterSpriteRenderer.enabled = false;
+        }
+
         if (startButton != null) 
         {
             startButton.SetActive(false);
             Button fightBtn = startButton.GetComponent<Button>();
             if (fightBtn != null)
             {
+                // Удаляем старые листенеры, чтобы не плодить их при перезагрузках
+                fightBtn.onClick.RemoveAllListeners();
                 fightBtn.onClick.AddListener(() => PlayFightSound());
             }
         }
@@ -89,7 +93,6 @@ public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer 
             audioSource.PlayOneShot(fightSound, fightVolume);
         }
         
-        // Затемнение + загрузка уровня!
         StartCoroutine(FadeToLevel());
     }
 
@@ -135,7 +138,8 @@ public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer 
     {
         if (!isDialogueActive) return;
 
-        if (isMonsterAnimating && monsterTransform != null)
+        // Fallback анимация пульсации, если нет Аниматора
+        if (isMonsterAnimating && monsterTransform != null && monsterAnimator == null)
         {
             float pulse = Mathf.Sin(Time.time * monsterPulseSpeed) * 0.1f;
             monsterTransform.localScale = Vector3.one * (1f + pulse);
@@ -193,37 +197,45 @@ public SpriteRenderer monsterSpriteRenderer; // Перетащи SpriteRenderer 
     }
 
     void NextSentence()
-{
-    if (index < sentences.Length - 1)
     {
-        index++;
-        
-        // 🔥 ПОКАЗЫВАЕМ МОНСТРА НА 3-Й РЕПЛИКЕ (index == 2)
-        // if (index == 1 && monsterSpriteRenderer != null)
-        
-        textDisplay.text = "";
-        StartCoroutine(Type());
-    }
-    else
-    {
-        textDisplay.text = "";
-        if (startButton != null) 
+        if (index < sentences.Length - 1)
         {
-            startButton.SetActive(true);
+            index++;
             
-            // Animator триггер
-            if (monsterAnimator != null)
-            {
-                monsterAnimator.SetTrigger(fightTriggerName);
-            }
-            else if (monsterTransform != null)
-            {
-                isMonsterAnimating = true;
-            }
+            // Если нужно показать монстра раньше, раскомментируй это:
+            // if (index == 1 && monsterSpriteRenderer != null) monsterSpriteRenderer.enabled = true;
+            
+            textDisplay.text = "";
+            StartCoroutine(Type());
         }
-        isDialogueActive = false;
-        IsFinished = true;
-    }
-}
+        else
+        {
+            // === КОНЕЦ ДИАЛОГА ===
+            textDisplay.text = "";
+            
+            if (startButton != null) 
+            {
+                startButton.SetActive(true);
+                
+                // 1. Сначала делаем монстра видимым!
+                if (monsterSpriteRenderer != null) 
+                {
+                    monsterSpriteRenderer.enabled = true;
+                }
 
+                // 2. Запускаем анимацию смены облика
+                if (monsterAnimator != null)
+                {
+                    // "FightReady" должно быть создано в Animator Controller как Trigger
+                    monsterAnimator.SetTrigger(fightTriggerName); 
+                }
+                else if (monsterTransform != null)
+                {
+                    isMonsterAnimating = true; // Запасной вариант (пульсация)
+                }
+            }
+            isDialogueActive = false;
+            IsFinished = true;
+        }
+    }
 }
