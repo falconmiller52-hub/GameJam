@@ -19,6 +19,10 @@ public class DeathDialogueManager : MonoBehaviour
 
     void Start()
     {
+        // 🔥 СБРОС КУРСОРА ПРИ ЗАГРУЗКЕ СЦЕНЫ DeathDialogue
+Cursor.lockState = CursorLockMode.None;
+Cursor.visible = true;
+
         // Автозапуск музыки
         if (musicSource == null)
         {
