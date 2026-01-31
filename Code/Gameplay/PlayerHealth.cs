@@ -115,6 +115,13 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        // Проверяем щит
+PlayerShield shield = GetComponent<PlayerShield>();
+if (shield != null && shield.HasShield())
+{
+    damage = shield.TakeDamage(damage);
+    if (damage <= 0) return; // Весь урон поглощён
+}
         if (isDead) return;
 
         currentHealth -= damage;
