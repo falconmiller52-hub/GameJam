@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1374230958062597697}
   - component: {fileID: 8585621289819364700}
-  - component: {fileID: 1249815843264354551}
   - component: {fileID: 8720843206025004785}
   m_Layer: 0
   m_Name: Aura
@@ -81,7 +80,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 4bfc5a799e9d4d44897c646103630e32, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -93,31 +92,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &1249815843264354551
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7704653160354287309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01db3d3e9d99f834ba962f8cf53576eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RedAura
-  auraRadius: 2
-  damagePerSecond: 2
-  damageInterval: 0.5
-  auraSprite: {fileID: 8585621289819364700}
-  auraColor: {r: 1, g: 0, b: 0, a: 0.3}
-  pulseMinAlpha: 0.2
-  pulseMaxAlpha: 0.4
-  pulseSpeed: 2
-  damageParticles: {fileID: 0}
-  auraLoopSound: {fileID: 0}
-  loopVolume: 0.3
-  damageTickSound: {fileID: 8300000, guid: 86557ccbbe1505e428233be5cc21f545, type: 3}
-  tickVolume: 0.2
 --- !u!114 &8720843206025004785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,18 +108,17 @@ MonoBehaviour:
   upgradeValue: 0.2
   upgradeName: Red aura
   upgradeDescription: Kill all enemies around you!
-  tooltipCanvas: {fileID: 0}
-  nameText: {fileID: 0}
-  descriptionText: {fileID: 0}
-  buttonHintText: {fileID: 0}
-  iconImage: {fileID: 0}
-  upgradeIcon: {fileID: 0}
+  upgradeIcon: {fileID: 21300000, guid: 4bfc5a799e9d4d44897c646103630e32, type: 3}
   glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   bobSpeed: 2
   bobAmount: 0.2
+  tooltipFont: {fileID: 11400000, guid: 801dd9087ca2ffb41bd300b06d8cbc97, type: 2}
+  nameFontSize: 4
+  descFontSize: 3
+  hintFontSize: 2.5
   pickupRadius: 0.96
   tooltipShowRadius: 1.95
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 0d0056e923a2735428a83ab638e78ccf, type: 3}
   pickupVolume: 0.8
   flyOutDuration: 0.8
   flyOutHeight: 2

@@ -108,18 +108,17 @@ MonoBehaviour:
   upgradeValue: 1
   upgradeName: "\u0423\u0440\u043E\u043D"
   upgradeDescription: "\u0423\u0440\u043E\u043D +1"
-  tooltipCanvas: {fileID: 0}
-  nameText: {fileID: 0}
-  descriptionText: {fileID: 0}
-  buttonHintText: {fileID: 0}
-  iconImage: {fileID: 0}
   upgradeIcon: {fileID: 3385720806342478644, guid: f571df6d1f455724697a5397f1f16678, type: 3}
   glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   bobSpeed: 2
   bobAmount: 0.2
+  tooltipFont: {fileID: 11400000, guid: 801dd9087ca2ffb41bd300b06d8cbc97, type: 2}
+  nameFontSize: 4
+  descFontSize: 3
+  hintFontSize: 2.5
   pickupRadius: 0.96
   tooltipShowRadius: 2
-  pickupSound: {fileID: 8300000, guid: a526c245d6e14d9418bfc2e368c12d74, type: 3}
+  pickupSound: {fileID: 8300000, guid: 0d0056e923a2735428a83ab638e78ccf, type: 3}
   pickupVolume: 0.8
   flyOutDuration: 0.8
   flyOutHeight: 2

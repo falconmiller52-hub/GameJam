@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2941440669456719468}
   - component: {fileID: 4586323446353584579}
-  - component: {fileID: 4349578188443438600}
   - component: {fileID: 3235607162265124532}
   m_Layer: 0
   m_Name: Shield
@@ -93,40 +92,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &4349578188443438600
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6980912510997118888}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4919c60d250fa9a40bb930f771ee0d97, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerShield
-  maxShield: 3
-  currentShield: 0
-  regenRate: 2
-  regenDelay: 2
-  shockwaveRadius: 4
-  knockbackForce: 15
-  shockwaveDamage: 1
-  shieldIcon: {fileID: 4586323446353584579}
-  shieldFullSprite: {fileID: -8197088295812622937, guid: 7bd6fc0f7b6d02d4ab581e2c9d8f5884, type: 3}
-  shieldDamagedSprite: {fileID: -4980045146689934828, guid: cf74d895dec5d9c4ba0843f3c99ca418, type: 3}
-  shieldEmptySprite: {fileID: 0}
-  regenAnimSprite: {fileID: 0}
-  damageAnimSprite: {fileID: 0}
-  shockwaveEffectPrefab: {fileID: 3476851161508329253, guid: edd65ef30e515bb4b95dcecb376c78f0, type: 3}
-  animDisplayTime: 0.3
-  shieldHitSound: {fileID: 0}
-  hitVolume: 0.6
-  shieldRegenSound: {fileID: 0}
-  regenVolume: 0.4
-  shieldBreakSound: {fileID: 0}
-  breakVolume: 1
-  playerHealth: {fileID: 0}
 --- !u!114 &3235607162265124532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,21 +105,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UpgradePickup
   upgradeType: 6
-  upgradeValue: 0.2
+  upgradeValue: 1
   upgradeName: Shield
   upgradeDescription: Live a 5.2 seconds longer!
-  tooltipCanvas: {fileID: 0}
-  nameText: {fileID: 0}
-  descriptionText: {fileID: 0}
-  buttonHintText: {fileID: 0}
-  iconImage: {fileID: 0}
-  upgradeIcon: {fileID: 0}
-  glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  upgradeIcon: {fileID: 21300000, guid: 93d3e7c0d9fc10943bff5910798c651d, type: 3}
+  glowColor: {r: 0, g: 0.8346297, b: 0.9924528, a: 1}
   bobSpeed: 2
   bobAmount: 0.2
+  tooltipFont: {fileID: 11400000, guid: 801dd9087ca2ffb41bd300b06d8cbc97, type: 2}
+  nameFontSize: 4
+  descFontSize: 3
+  hintFontSize: 2.5
   pickupRadius: 1.5
   tooltipShowRadius: 2
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 0d0056e923a2735428a83ab638e78ccf, type: 3}
   pickupVolume: 0.8
   flyOutDuration: 0.8
   flyOutHeight: 2

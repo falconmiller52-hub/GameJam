@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 93d3e7c0d9fc10943bff5910798c651d, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -91,7 +91,7 @@ SpriteRenderer:
   m_Size: {x: 1.04, y: 1.04}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!114 &-6439508538533308682
 MonoBehaviour:
@@ -105,28 +105,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4919c60d250fa9a40bb930f771ee0d97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShield
-  maxShield: 3
-  currentShield: 0
-  regenRate: 2
+  maxShield: 7
+  currentShield: 4
+  regenTime: 5
   regenDelay: 2
   shockwaveRadius: 4
   knockbackForce: 15
   shockwaveDamage: 1
   shieldIcon: {fileID: 6500255918716043601}
   shieldFullSprite: {fileID: -8197088295812622937, guid: 7bd6fc0f7b6d02d4ab581e2c9d8f5884, type: 3}
-  shieldDamagedSprite: {fileID: -4980045146689934828, guid: cf74d895dec5d9c4ba0843f3c99ca418, type: 3}
-  shieldEmptySprite: {fileID: 0}
-  regenAnimSprite: {fileID: 0}
-  damageAnimSprite: {fileID: 0}
+  shieldBrokenSprite: {fileID: 0}
   shockwaveEffectPrefab: {fileID: 3476851161508329253, guid: edd65ef30e515bb4b95dcecb376c78f0, type: 3}
-  animDisplayTime: 0.3
+  shockwaveFrames: []
+  shockwaveFrameTime: 0.1
   shieldHitSound: {fileID: 0}
   hitVolume: 0.6
   shieldRegenSound: {fileID: 0}
   regenVolume: 0.4
   shieldBreakSound: {fileID: 0}
   breakVolume: 1
-  playerHealth: {fileID: 0}
 --- !u!114 &1446994845029633000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,11 +140,6 @@ MonoBehaviour:
   upgradeValue: 0.2
   upgradeName: Shield
   upgradeDescription: Live a 5.2 seconds longer!
-  tooltipCanvas: {fileID: 0}
-  nameText: {fileID: 0}
-  descriptionText: {fileID: 0}
-  buttonHintText: {fileID: 0}
-  iconImage: {fileID: 0}
   upgradeIcon: {fileID: 0}
   glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   bobSpeed: 2

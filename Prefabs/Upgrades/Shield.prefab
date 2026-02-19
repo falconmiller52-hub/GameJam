@@ -78,9 +78,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: 138337151
+  m_SortingLayer: 1
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 7bd6fc0f7b6d02d4ab581e2c9d8f5884, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -106,23 +106,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShield
   maxShield: 1
   currentShield: 0
-  regenRate: 2
+  regenTime: 5
   regenDelay: 2
   shockwaveRadius: 4
   knockbackForce: 15
   shockwaveDamage: 1
   shieldIcon: {fileID: 1665086983200040359}
   shieldFullSprite: {fileID: 21300000, guid: 7bd6fc0f7b6d02d4ab581e2c9d8f5884, type: 3}
-  shieldDamagedSprite: {fileID: 21300000, guid: cf74d895dec5d9c4ba0843f3c99ca418, type: 3}
-  shieldEmptySprite: {fileID: 0}
-  regenAnimSprite: {fileID: 0}
-  damageAnimSprite: {fileID: 0}
+  shieldBrokenSprite: {fileID: 21300000, guid: cf74d895dec5d9c4ba0843f3c99ca418, type: 3}
   shockwaveEffectPrefab: {fileID: 3476851161508329253, guid: edd65ef30e515bb4b95dcecb376c78f0, type: 3}
-  animDisplayTime: 0.3
+  shockwaveFrames:
+  - {fileID: 21300000, guid: 4b4e23b2793fcac4b9cca3c99c8626cd, type: 3}
+  - {fileID: 21300000, guid: 00f34ce4861df744fafc81df19c1bab0, type: 3}
+  - {fileID: 21300000, guid: cb62cf5f3830da64bbd20d2007e5b761, type: 3}
+  shockwaveFrameTime: 0.1
+  shockwaveVisualScale: 3
   shieldHitSound: {fileID: 0}
   hitVolume: 0.6
   shieldRegenSound: {fileID: 0}
   regenVolume: 0.4
   shieldBreakSound: {fileID: 8300000, guid: 267d1182dc7bf6a47aa8c7e44faa3732, type: 3}
   breakVolume: 1
-  playerHealth: {fileID: 0}
