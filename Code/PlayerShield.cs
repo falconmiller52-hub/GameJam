@@ -2,11 +2,12 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// Щит — дополнительная жизнь. Регенерируется только при полном ХП.
-/// При разрушении — ударная волна с анимацией.
+/// Щит — дополнительная жизнь.
 /// 
-/// ИСПРАВЛЕНО: Использует ТОЛЬКО назначенные спрайты из инспектора.
-/// Программные спрайты больше не создаются — если спрайт не назначен, он просто не показывается.
+/// ИСПРАВЛЕНО:
+/// - Ищет/создаёт ShieldIcon как дочерний объект Player
+/// - Корректно показывает спрайты полного/сломанного щита
+/// - Ударная волна: префаб ИЛИ покадровая анимация из shockwaveFrames
 /// </summary>
 public class PlayerShield : MonoBehaviour
 {
@@ -22,20 +23,15 @@ public class PlayerShield : MonoBehaviour
     public int shockwaveDamage = 1;
 
     [Header("=== ВИЗУАЛ ЩИТА ===")]
-    [Tooltip("SpriteRenderer иконки щита (дочерний объект ShieldIcon на Player)")]
+    [Tooltip("Автонаходится по имени ShieldIcon на Player")]
     public SpriteRenderer shieldIcon;
-    [Tooltip("Спрайт полного щита")]
     public Sprite shieldFullSprite;
-    [Tooltip("Спрайт разбитого щита")]
     public Sprite shieldBrokenSprite;
 
     [Header("=== АНИМАЦИЯ УДАРНОЙ ВОЛНЫ ===")]
-    [Tooltip("Префаб эффекта ударной волны (с Animator или анимацией)")]
     public GameObject shockwaveEffectPrefab;
-    [Tooltip("ИЛИ: массив спрайтов для покадровой анимации (3 кадра)")]
     public Sprite[] shockwaveFrames;
     public float shockwaveFrameTime = 0.1f;
-    [Tooltip("Размер эффекта ударной волны")]
     public float shockwaveVisualScale = 3f;
 
     [Header("=== АУДИО ===")]
@@ -61,27 +57,67 @@ public class PlayerShield : MonoBehaviour
         FindPlayerHealth();
         currentShield = maxShield;
 
-        // 🔥 Ищем ShieldIcon на Player если не назначен
-        if (shieldIcon == null)
-        {
-            Transform iconT = transform.Find("ShieldIcon");
-            if (iconT != null)
-                shieldIcon = iconT.GetComponent<SpriteRenderer>();
-        }
+        // 🔥 Находим или создаём ShieldIcon
+        SetupShieldIcon();
 
         isActive = true;
         UpdateIcon();
-        Debug.Log($"[PlayerShield] Щит активирован! {currentShield}/{maxShield}");
+        Debug.Log($"[PlayerShield] Щит активирован! {currentShield}/{maxShield}, Icon={shieldIcon != null}");
     }
 
     void FindPlayerHealth()
     {
         playerHealth = GetComponent<PlayerHealth>();
-        if (playerHealth == null) playerHealth = GetComponentInParent<PlayerHealth>();
         if (playerHealth == null)
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) playerHealth = p.GetComponent<PlayerHealth>();
+        }
+    }
+
+    /// <summary>
+    /// Ищет ShieldIcon среди дочерних объектов Player.
+    /// Если не находит — создаёт новый.
+    /// </summary>
+    void SetupShieldIcon()
+    {
+        if (shieldIcon != null) return;
+
+        // 1. Ищем по имени среди дочерних
+        Transform iconT = transform.Find("ShieldIcon");
+        if (iconT != null)
+        {
+            shieldIcon = iconT.GetComponent<SpriteRenderer>();
+            Debug.Log("[PlayerShield] ShieldIcon найден на Player!");
+            return;
+        }
+
+        // 2. Ищем по имени рекурсивно (может быть вложен глубже)
+        foreach (Transform child in GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == "ShieldIcon")
+            {
+                shieldIcon = child.GetComponent<SpriteRenderer>();
+                if (shieldIcon != null)
+                {
+                    Debug.Log("[PlayerShield] ShieldIcon найден в дочерних!");
+                    return;
+                }
+            }
+        }
+
+        // 3. Создаём новый ShieldIcon
+        if (shieldFullSprite != null || shieldBrokenSprite != null)
+        {
+            GameObject iconObj = new GameObject("ShieldIcon");
+            iconObj.transform.SetParent(transform);
+            iconObj.transform.localPosition = new Vector3(0f, 1.5f, 0);
+            iconObj.transform.localScale = Vector3.one * 5f;
+            
+            shieldIcon = iconObj.AddComponent<SpriteRenderer>();
+            shieldIcon.sortingOrder = 10;
+            
+            Debug.Log("[PlayerShield] ShieldIcon создан программно!");
         }
     }
 
@@ -94,17 +130,8 @@ public class PlayerShield : MonoBehaviour
     void HandleRegen()
     {
         if (currentShield >= maxShield) return;
-
         if (playerHealth == null) { FindPlayerHealth(); return; }
-
-        // Не регенит пока ХП не полное
-        if (playerHealth.currentHealth < playerHealth.maxHealth)
-        {
-            regenTimer = 0f;
-            return;
-        }
-
-        // Задержка после урона
+        if (playerHealth.currentHealth < playerHealth.maxHealth) { regenTimer = 0f; return; }
         if (Time.time < lastDamageTime + regenDelay) return;
 
         regenTimer += Time.deltaTime;
@@ -123,8 +150,7 @@ public class PlayerShield : MonoBehaviour
 
     public int TakeDamage(int damage)
     {
-        if (!isActive || currentShield <= 0)
-            return damage;
+        if (!isActive || currentShield <= 0) return damage;
 
         lastDamageTime = Time.time;
         regenTimer = 0f;
@@ -136,8 +162,6 @@ public class PlayerShield : MonoBehaviour
             audioSource.PlayOneShot(shieldHitSound, hitVolume);
 
         UpdateIcon();
-
-        Debug.Log($"[PlayerShield] Поглощено: {absorbed}. Щит: {currentShield}/{maxShield}");
 
         if (currentShield <= 0)
             OnShieldBroken();
@@ -152,7 +176,7 @@ public class PlayerShield : MonoBehaviour
         if (shieldBreakSound != null && audioSource != null)
             audioSource.PlayOneShot(shieldBreakSound, breakVolume);
 
-        // Отбрасывание врагов
+        // Урон и отбрасывание
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, shockwaveRadius);
         foreach (Collider2D hit in hits)
         {
@@ -165,26 +189,28 @@ public class PlayerShield : MonoBehaviour
                     rb.AddForce(dir * knockbackForce, ForceMode2D.Impulse);
                 }
                 EnemyHealth eh = hit.GetComponent<EnemyHealth>();
-                if (eh != null && shockwaveDamage > 0)
-                    eh.TakeDamage(shockwaveDamage);
+                if (eh != null && shockwaveDamage > 0) eh.TakeDamage(shockwaveDamage);
             }
-
             Projectile proj = hit.GetComponent<Projectile>();
             if (proj != null) Destroy(hit.gameObject);
         }
 
-        // Анимация ударной волны
+        // Визуал ударной волны
         if (shockwaveEffectPrefab != null)
         {
-            // Вариант 1: Префаб с Animator
             GameObject eff = Instantiate(shockwaveEffectPrefab, transform.position, Quaternion.identity);
             eff.transform.localScale = Vector3.one * shockwaveVisualScale;
             Destroy(eff, 2f);
+            Debug.Log("[PlayerShield] Ударная волна — из префаба!");
         }
         else if (shockwaveFrames != null && shockwaveFrames.Length > 0)
         {
-            // Вариант 2: Покадровая анимация из спрайтов
             StartCoroutine(PlayShockwaveFrames());
+            Debug.Log("[PlayerShield] Ударная волна — покадровая!");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerShield] Нет ни префаба, ни спрайтов для ударной волны!");
         }
     }
 
@@ -207,13 +233,16 @@ public class PlayerShield : MonoBehaviour
 
     void UpdateIcon()
     {
-        if (shieldIcon == null) return;
+        if (shieldIcon == null)
+        {
+            SetupShieldIcon();
+            if (shieldIcon == null) return;
+        }
 
         if (currentShield > 0)
         {
             shieldIcon.gameObject.SetActive(true);
-            if (shieldFullSprite != null)
-                shieldIcon.sprite = shieldFullSprite;
+            if (shieldFullSprite != null) shieldIcon.sprite = shieldFullSprite;
             shieldIcon.color = Color.white;
         }
         else
@@ -238,7 +267,6 @@ public class PlayerShield : MonoBehaviour
         maxShield += bonus;
         currentShield = Mathf.Min(currentShield + bonus, maxShield);
         UpdateIcon();
-        Debug.Log($"[PlayerShield] Улучшен! {currentShield}/{maxShield}");
     }
 
     void OnDrawGizmosSelected()

@@ -113,7 +113,7 @@ MonoBehaviour:
   lightningMedium: {fileID: -5339867879282374224, guid: fb1f802ddc136ed4c92e4067afee65af, type: 3}
   lightningLong: {fileID: -6584043425369596066, guid: d66a8768eacbc624da88369502baa7df, type: 3}
   shortMaxDistance: 2
-  mediumMaxDistance: 4
+  mediumMaxDistance: 3
   lightningColor: {r: 0.5, g: 0.8, b: 1, a: 1}
   lightningDisplayTime: 0.15
   shockSound: {fileID: 8300000, guid: 0464e85ec2f137046a2a4ce62f2317b6, type: 3}

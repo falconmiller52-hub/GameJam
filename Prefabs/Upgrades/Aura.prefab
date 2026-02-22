@@ -105,19 +105,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01db3d3e9d99f834ba962f8cf53576eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RedAura
-  auraRadius: 2
-  damagePerSecond: 2
-  damageInterval: 0.5
+  auraRadius: 4
+  damagePerTick: 1
+  damageCooldown: 0.5
   auraSprite: {fileID: 7553612543741172804}
   auraColor: {r: 1, g: 0, b: 0, a: 0.3}
   pulseMinAlpha: 0.2
   pulseMaxAlpha: 0.4
   pulseSpeed: 2
-  damageParticles: {fileID: 0}
   auraLoopSound: {fileID: 0}
   loopVolume: 0.3
   damageTickSound: {fileID: 8300000, guid: 86557ccbbe1505e428233be5cc21f545, type: 3}
   tickVolume: 0.2
+  damageParticles: {fileID: 0}
 --- !u!95 &1076088790677961968
 Animator:
   serializedVersion: 7

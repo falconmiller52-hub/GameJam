@@ -4,16 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// Оружие "Кулаки" — ЛКМ левый удар, ПКМ правый удар.
-/// Каждый кулак имеет:
-///   - Animator с 3-кадровой анимацией удара
-///   - Движение по X при ударе (через код)
-///   - Коллайдер включается только во время удара (через код)
-///   
-/// АНИМАЦИЯ: Можно делать включение/выключение коллайдеров через Animation Events
-/// в клипе, НО рекомендуется оставить управление через код — так надёжнее и проще
-/// контролировать тайминги. Если хочешь через клип — просто убери строки
-/// col.enabled = true/false и добавь в клип Events, вызывающие EnableCollider()/DisableCollider().
+/// ИСПРАВЛЕНО: Перчатки больше не накладываются друг на друга.
+/// Добавлены leftFistOffset/rightFistOffset — если localPosition обеих (0,0),
+/// скрипт сам разводит их по X.
 /// </summary>
 public class FistsWeapon : MonoBehaviour
 {
@@ -27,27 +20,26 @@ public class FistsWeapon : MonoBehaviour
     public float globalCooldown = 0.2f;
 
     [Header("=== ДВИЖЕНИЕ КУЛАКА ПО X ===")]
-    [Tooltip("Расстояние выброса кулака вперёд")]
     public float punchDistance = 0.5f;
-    [Tooltip("Время выброса")]
     public float punchOutTime = 0.08f;
-    [Tooltip("Время удержания (хитбокс активен)")]
     public float punchHoldTime = 0.12f;
-    [Tooltip("Время возврата")]
     public float punchReturnTime = 0.15f;
 
     [Header("=== ОБЪЕКТЫ КУЛАКОВ ===")]
-    [Tooltip("Transform левого кулака (со спрайтом)")]
     public Transform leftFist;
-    [Tooltip("Transform правого кулака (со спрайтом)")]
     public Transform rightFist;
 
+    [Header("=== ПОЗИЦИИ КУЛАКОВ ===")]
+    [Tooltip("Смещение левого кулака от центра (если обе перчатки на 0,0)")]
+    public Vector3 leftFistOffset = new Vector3(-0.3f, 0.1f, 0f);
+    [Tooltip("Смещение правого кулака от центра")]
+    public Vector3 rightFistOffset = new Vector3(0.3f, -0.1f, 0f);
+    [Tooltip("Применить смещения при старте? (если перчатки на 0,0)")]
+    public bool autoPositionFists = true;
+
     [Header("=== АНИМАТОРЫ КУЛАКОВ ===")]
-    [Tooltip("Animator левого кулака (3-кадровая анимация)")]
     public Animator leftFistAnimator;
-    [Tooltip("Animator правого кулака")]
     public Animator rightFistAnimator;
-    [Tooltip("Имя триггера анимации удара")]
     public string punchTrigger = "Punch";
 
     [Header("=== КОЛЛАЙДЕРЫ ===")]
@@ -64,7 +56,6 @@ public class FistsWeapon : MonoBehaviour
     [Header("=== ВИЗУАЛ ===")]
     public GameObject hitEffectPrefab;
 
-    // Приватные
     private AudioSource audioSource;
     private float lastLeftAttackTime = -999f;
     private float lastRightAttackTime = -999f;
@@ -72,15 +63,13 @@ public class FistsWeapon : MonoBehaviour
     private bool isAttacking = false;
     private List<GameObject> hitEnemies = new List<GameObject>();
     private WeaponSwitcher weaponSwitcher;
-
     private Vector3 leftFistStartPos;
     private Vector3 rightFistStartPos;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-            audioSource = gameObject.AddComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
 
         weaponSwitcher = GetComponentInParent<WeaponSwitcher>();
         if (weaponSwitcher == null)
@@ -89,16 +78,42 @@ public class FistsWeapon : MonoBehaviour
             if (p != null) weaponSwitcher = p.GetComponent<WeaponSwitcher>();
         }
 
+        // 🔥 Разводим перчатки если они обе на (0,0)
+        if (autoPositionFists && leftFist != null && rightFist != null)
+        {
+            float dist = Vector3.Distance(leftFist.localPosition, rightFist.localPosition);
+            if (dist < 0.01f) // Обе на одной позиции
+            {
+                leftFist.localPosition = leftFistOffset;
+                rightFist.localPosition = rightFistOffset;
+                Debug.Log($"[FistsWeapon] Перчатки разведены: L={leftFistOffset}, R={rightFistOffset}");
+            }
+        }
+
         if (leftFist != null) leftFistStartPos = leftFist.localPosition;
         if (rightFist != null) rightFistStartPos = rightFist.localPosition;
 
-        // Автопоиск аниматоров
-        if (leftFistAnimator == null && leftFist != null)
-            leftFistAnimator = leftFist.GetComponent<Animator>();
-        if (rightFistAnimator == null && rightFist != null)
-            rightFistAnimator = rightFist.GetComponent<Animator>();
+        if (leftFistAnimator == null && leftFist != null) leftFistAnimator = leftFist.GetComponent<Animator>();
+        if (rightFistAnimator == null && rightFist != null) rightFistAnimator = rightFist.GetComponent<Animator>();
 
+        EnsureColliderHelper(leftFist, leftFistCollider);
+        EnsureColliderHelper(rightFist, rightFistCollider);
         DisableColliders();
+    }
+
+    void EnsureColliderHelper(Transform fist, Collider2D col)
+    {
+        if (fist == null) return;
+        FistColliderHelper h = fist.GetComponent<FistColliderHelper>();
+        if (h == null) { h = fist.gameObject.AddComponent<FistColliderHelper>(); }
+        h.fistsWeapon = this;
+
+        if (col != null && col.gameObject != fist.gameObject)
+        {
+            FistColliderHelper ch = col.GetComponent<FistColliderHelper>();
+            if (ch == null) { ch = col.gameObject.AddComponent<FistColliderHelper>(); }
+            ch.fistsWeapon = this;
+        }
     }
 
     void Update()
@@ -108,33 +123,20 @@ public class FistsWeapon : MonoBehaviour
         if (Mouse.current == null) return;
 
         if (Mouse.current.leftButton.wasPressedThisFrame && CanAttackLeft())
-            StartCoroutine(PunchRoutine(isLeft: true));
-
+            StartCoroutine(PunchRoutine(true));
         if (Mouse.current.rightButton.wasPressedThisFrame && CanAttackRight())
-            StartCoroutine(PunchRoutine(isLeft: false));
+            StartCoroutine(PunchRoutine(false));
     }
 
-    bool CanAttackLeft()
-    {
-        return !isAttacking &&
-               Time.time >= lastAnyAttackTime + globalCooldown &&
-               Time.time >= lastLeftAttackTime + leftAttackCooldown;
-    }
-
-    bool CanAttackRight()
-    {
-        return !isAttacking &&
-               Time.time >= lastAnyAttackTime + globalCooldown &&
-               Time.time >= lastRightAttackTime + rightAttackCooldown;
-    }
+    bool CanAttackLeft() => !isAttacking && Time.time >= lastAnyAttackTime + globalCooldown && Time.time >= lastLeftAttackTime + leftAttackCooldown;
+    bool CanAttackRight() => !isAttacking && Time.time >= lastAnyAttackTime + globalCooldown && Time.time >= lastRightAttackTime + rightAttackCooldown;
 
     IEnumerator PunchRoutine(bool isLeft)
     {
         isAttacking = true;
         hitEnemies.Clear();
 
-        if (isLeft) { lastLeftAttackTime = Time.time; }
-        else { lastRightAttackTime = Time.time; }
+        if (isLeft) lastLeftAttackTime = Time.time; else lastRightAttackTime = Time.time;
         lastAnyAttackTime = Time.time;
 
         Transform fist = isLeft ? leftFist : rightFist;
@@ -143,73 +145,40 @@ public class FistsWeapon : MonoBehaviour
         Animator anim = isLeft ? leftFistAnimator : rightFistAnimator;
         Vector3 startPos = isLeft ? leftFistStartPos : rightFistStartPos;
 
-        // 1. Звук
         if (sound != null && audioSource != null)
-        {
-            audioSource.pitch = Random.Range(0.9f, 1.1f);
-            audioSource.PlayOneShot(sound, punchVolume);
-        }
+        { audioSource.pitch = Random.Range(0.9f, 1.1f); audioSource.PlayOneShot(sound, punchVolume); }
 
-        // 2. Анимация (3 кадра) — запускаем сразу
-        if (anim != null)
-        {
-            anim.ResetTrigger(punchTrigger);
-            anim.SetTrigger(punchTrigger);
-        }
+        if (anim != null) { anim.ResetTrigger(punchTrigger); anim.SetTrigger(punchTrigger); }
 
-        // 3. Движение по X + хитбокс
         if (fist != null)
         {
             Vector3 targetPos = startPos + Vector3.right * punchDistance;
-
-            // ФАЗА 1: Выброс вперёд
             float elapsed = 0f;
             while (elapsed < punchOutTime)
-            {
-                float t = elapsed / punchOutTime;
-                fist.localPosition = Vector3.Lerp(startPos, targetPos, EaseOutCubic(t));
-                elapsed += Time.deltaTime;
-                yield return null;
-            }
+            { fist.localPosition = Vector3.Lerp(startPos, targetPos, EaseOut(elapsed / punchOutTime)); elapsed += Time.deltaTime; yield return null; }
             fist.localPosition = targetPos;
 
-            // ФАЗА 2: Удержание — хитбокс включён
             if (col != null) col.enabled = true;
             yield return new WaitForSeconds(punchHoldTime);
             if (col != null) col.enabled = false;
 
-            // ФАЗА 3: Возврат
             elapsed = 0f;
             while (elapsed < punchReturnTime)
-            {
-                float t = elapsed / punchReturnTime;
-                fist.localPosition = Vector3.Lerp(targetPos, startPos, EaseInCubic(t));
-                elapsed += Time.deltaTime;
-                yield return null;
-            }
+            { fist.localPosition = Vector3.Lerp(targetPos, startPos, EaseIn(elapsed / punchReturnTime)); elapsed += Time.deltaTime; yield return null; }
             fist.localPosition = startPos;
         }
         else
-        {
-            // Фоллбэк без Transform
-            if (col != null) col.enabled = true;
-            yield return new WaitForSeconds(punchHoldTime);
-            if (col != null) col.enabled = false;
-            yield return new WaitForSeconds(punchReturnTime);
-        }
+        { if (col != null) col.enabled = true; yield return new WaitForSeconds(punchHoldTime); if (col != null) col.enabled = false; yield return new WaitForSeconds(punchReturnTime); }
 
         isAttacking = false;
     }
 
-    float EaseOutCubic(float t) => 1f - Mathf.Pow(1f - t, 3f);
-    float EaseInCubic(float t) => t * t * t;
-
-    // ==================== ПОПАДАНИЕ ====================
+    float EaseOut(float t) => 1f - Mathf.Pow(1f - t, 3f);
+    float EaseIn(float t) => t * t * t;
 
     public void OnFistHit(Collider2D other)
     {
-        if (other.CompareTag("Player")) return;
-        if (other.isTrigger) return;
+        if (other.CompareTag("Player") || other.isTrigger) return;
         if (hitEnemies.Contains(other.gameObject)) return;
 
         EnemyHealth eh = other.GetComponent<EnemyHealth>();
@@ -217,78 +186,26 @@ public class FistsWeapon : MonoBehaviour
         {
             eh.TakeDamage(damage);
             hitEnemies.Add(other.gameObject);
-
-            if (hitSound != null)
-            {
-                audioSource.pitch = Random.Range(0.9f, 1.1f);
-                audioSource.PlayOneShot(hitSound, hitVolume);
-            }
-
-            Rigidbody2D enemyRb = other.GetComponent<Rigidbody2D>();
-            if (enemyRb != null)
-            {
-                enemyRb.linearVelocity = Vector2.zero;
-                Vector2 dir = (other.transform.position - transform.position).normalized;
-                enemyRb.AddForce(dir * knockbackForce, ForceMode2D.Impulse);
-            }
-
-            if (hitEffectPrefab != null)
-            {
-                GameObject eff = Instantiate(hitEffectPrefab, other.transform.position, Quaternion.identity);
-                Destroy(eff, 1f);
-            }
+            if (hitSound != null) { audioSource.pitch = Random.Range(0.9f, 1.1f); audioSource.PlayOneShot(hitSound, hitVolume); }
+            Rigidbody2D rb = other.GetComponent<Rigidbody2D>();
+            if (rb != null) { rb.linearVelocity = Vector2.zero; rb.AddForce((other.transform.position - transform.position).normalized * knockbackForce, ForceMode2D.Impulse); }
+            if (hitEffectPrefab != null) { GameObject e = Instantiate(hitEffectPrefab, other.transform.position, Quaternion.identity); Destroy(e, 1f); }
         }
     }
 
-    // ==================== МЕТОДЫ ДЛЯ ANIMATION EVENTS ====================
-    // Если хочешь управлять коллайдерами через анимационный клип:
-    //   - Добавь Animation Event на нужный кадр
-    //   - Вызови EnableLeftCollider() / DisableLeftCollider() и т.д.
-
-    public void EnableLeftCollider() { if (leftFistCollider != null) leftFistCollider.enabled = true; }
-    public void DisableLeftCollider() { if (leftFistCollider != null) leftFistCollider.enabled = false; }
-    public void EnableRightCollider() { if (rightFistCollider != null) rightFistCollider.enabled = true; }
-    public void DisableRightCollider() { if (rightFistCollider != null) rightFistCollider.enabled = false; }
-
-    // ==================== УТИЛИТЫ ====================
-
     void DisableColliders()
-    {
-        if (leftFistCollider != null) leftFistCollider.enabled = false;
-        if (rightFistCollider != null) rightFistCollider.enabled = false;
-    }
+    { if (leftFistCollider != null) leftFistCollider.enabled = false; if (rightFistCollider != null) rightFistCollider.enabled = false; }
 
-    void OnEnable()
-    {
-        DisableColliders();
-        hitEnemies.Clear();
-    }
-
+    void OnEnable() { DisableColliders(); hitEnemies.Clear(); }
     void OnDisable()
-    {
-        DisableColliders();
-        isAttacking = false;
-        if (leftFist != null) leftFist.localPosition = leftFistStartPos;
-        if (rightFist != null) rightFist.localPosition = rightFistStartPos;
-    }
+    { DisableColliders(); isAttacking = false;
+      if (leftFist != null) leftFist.localPosition = leftFistStartPos;
+      if (rightFist != null) rightFist.localPosition = rightFistStartPos; }
 }
 
-/// <summary>
-/// Хелпер для коллайдера кулака. Добавь на каждый дочерний объект с коллайдером.
-/// </summary>
 public class FistColliderHelper : MonoBehaviour
 {
     public FistsWeapon fistsWeapon;
-
-    void Start()
-    {
-        if (fistsWeapon == null)
-            fistsWeapon = GetComponentInParent<FistsWeapon>();
-    }
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (fistsWeapon != null)
-            fistsWeapon.OnFistHit(other);
-    }
+    void Start() { if (fistsWeapon == null) fistsWeapon = GetComponentInParent<FistsWeapon>(); }
+    void OnTriggerEnter2D(Collider2D other) { if (fistsWeapon != null) fistsWeapon.OnFistHit(other); }
 }
