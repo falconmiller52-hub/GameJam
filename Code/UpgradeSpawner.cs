@@ -2,91 +2,80 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Спавнит улучшения из Бездны после зачистки волны.
-/// Исключает уже полученные способности из пула.
-/// Корректно уничтожает все улучшения с tooltip'ами.
+/// Spawns upgrades from the Monster NPC after wave cleared.
+/// FIXED: Re-searches for monster if null when SpawnUpgrades is called (fixes post-GameOver).
 /// </summary>
 public class UpgradeSpawner : MonoBehaviour
 {
-    [Header("=== ИСТОЧНИК ===")]
+    [Header("=== SOURCE ===")]
+    [Tooltip("Monster that spawns upgrades")]
     public Transform monsterTransform;
 
-    [Header("=== ПРЕФАБЫ УЛУЧШЕНИЙ ===")]
+    [Header("=== UPGRADE PREFABS ===")]
     public UpgradeData[] allUpgrades;
 
-    [Header("=== НАСТРОЙКИ СПАВНА ===")]
+    [Header("=== SPAWN SETTINGS ===")]
     public int upgradesPerWave = 2;
-    public float spawnDistance = 5f;
-    public float spreadAngle = 45f;
-    public Vector2 spawnOffset = Vector2.zero;
+    public float spawnDistance = 3f;
+    public float spreadAngle = 60f;
 
-    [Header("=== ОТЛАДКА ===")]
+    [Header("=== DEBUG ===")]
     public bool debugLogs = true;
 
     private List<GameObject> spawnedUpgrades = new List<GameObject>();
-
-    // 🔥 Список уже полученных УНИКАЛЬНЫХ способностей (не стат-апгрейдов)
     private HashSet<UpgradeType> obtainedAbilities = new HashSet<UpgradeType>();
 
     void Start()
     {
-        if (monsterTransform == null)
-        {
-            GameObject monster = GameObject.FindGameObjectWithTag("Monster");
-            if (monster != null) monsterTransform = monster.transform;
-        }
+        FindMonster();
+    }
+
+    void FindMonster()
+    {
+        if (monsterTransform != null) return;
+        GameObject monster = GameObject.FindGameObjectWithTag("Monster");
+        if (monster != null) monsterTransform = monster.transform;
     }
 
     /// <summary>
-    /// Отмечает способность как полученную (вызывается из UpgradeManager)
+    /// Marks an ability as obtained so it won't spawn again.
     /// </summary>
     public void MarkAsObtained(UpgradeType type)
     {
-        // Только уникальные способности исключаются
-        if (type == UpgradeType.RedAura || type == UpgradeType.ElectricShock ||
-            type == UpgradeType.Shield || type == UpgradeType.Fists)
-        {
-            obtainedAbilities.Add(type);
-            if (debugLogs) Debug.Log($"[UpgradeSpawner] {type} помечена как полученная. Больше не выпадет.");
-        }
+        obtainedAbilities.Add(type);
+        if (debugLogs) Debug.Log($"[UpgradeSpawner] Marked as obtained: {type}");
     }
 
     public void SpawnUpgrades()
     {
+        // 🔥 Re-search for monster if null (fixes post-GameOver reload)
         if (monsterTransform == null)
         {
-            Debug.LogError("[UpgradeSpawner] Монстр не найден!");
-            return;
+            FindMonster();
+            if (monsterTransform == null)
+            {
+                Debug.LogError("[UpgradeSpawner] Monster not found! Make sure Monster has tag 'Monster'.");
+                return;
+            }
         }
+
         if (allUpgrades == null || allUpgrades.Length == 0)
         {
-            Debug.LogError("[UpgradeSpawner] Нет настроенных улучшений!");
+            Debug.LogError("[UpgradeSpawner] No upgrades configured!");
             return;
         }
 
         DestroyAllUpgrades();
 
         List<UpgradeData> selected = SelectRandomUpgrades(upgradesPerWave);
-        if (debugLogs) Debug.Log($"[UpgradeSpawner] Спавним {selected.Count} улучшений");
-
-        // Направление к игроку
-        Vector2 dir = Vector2.down;
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-            dir = ((Vector2)playerObj.transform.position - (Vector2)monsterTransform.position).normalized;
+        if (debugLogs) Debug.Log($"[UpgradeSpawner] Spawning {selected.Count} upgrades");
 
         for (int i = 0; i < selected.Count; i++)
         {
             float angleOffset = (i - (selected.Count - 1) / 2f) * spreadAngle;
-            float baseAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            float finalAngle = baseAngle + angleOffset;
-
-            Vector2 direction = new Vector2(
-                Mathf.Cos(finalAngle * Mathf.Deg2Rad),
-                Mathf.Sin(finalAngle * Mathf.Deg2Rad));
-            Vector3 targetPos = monsterTransform.position + (Vector3)(direction * spawnDistance) + (Vector3)spawnOffset;
-
-            targetPos = FindSafePosition(targetPos, monsterTransform.position);
+            float angle = -90f + angleOffset;
+            Vector3 direction = Quaternion.Euler(0, 0, angle) * Vector3.right;
+            Vector3 targetPos = monsterTransform.position + direction * spawnDistance;
 
             GameObject upgrade = Instantiate(selected[i].prefab, monsterTransform.position, Quaternion.identity);
             spawnedUpgrades.Add(upgrade);
@@ -104,50 +93,35 @@ public class UpgradeSpawner : MonoBehaviour
         }
     }
 
-    Vector3 FindSafePosition(Vector3 targetPos, Vector3 origin)
-    {
-        Collider2D hit = Physics2D.OverlapCircle(targetPos, 0.5f, ~LayerMask.GetMask("Player", "Enemy"));
-        if (hit != null && !hit.isTrigger)
-        {
-            Vector2 dirToOrigin = ((Vector2)origin - (Vector2)targetPos).normalized;
-            for (float offset = 1f; offset <= 4f; offset += 1f)
-            {
-                Vector3 newPos = targetPos + (Vector3)(dirToOrigin * offset);
-                Collider2D check = Physics2D.OverlapCircle(newPos, 0.5f, ~LayerMask.GetMask("Player", "Enemy"));
-                if (check == null || check.isTrigger) return newPos;
-            }
-            return transform.position;
-        }
-        return targetPos;
-    }
-
     List<UpgradeData> SelectRandomUpgrades(int count)
     {
-        // Фильтруем уже полученные уникальные способности
         List<UpgradeData> available = new List<UpgradeData>();
-        foreach (var data in allUpgrades)
+
+        // Filter out obtained abilities
+        foreach (var ud in allUpgrades)
         {
-            if (!obtainedAbilities.Contains(data.type))
-                available.Add(data);
+            bool isAbility = ud.type == UpgradeType.RedAura || ud.type == UpgradeType.ElectricShock ||
+                             ud.type == UpgradeType.Shield || ud.type == UpgradeType.Fists;
+
+            if (isAbility && obtainedAbilities.Contains(ud.type))
+                continue;
+
+            available.Add(ud);
         }
 
         List<UpgradeData> selected = new List<UpgradeData>();
         count = Mathf.Min(count, available.Count);
 
-        // Копируем для рандома без повторов
-        List<UpgradeData> pool = new List<UpgradeData>(available);
         for (int i = 0; i < count; i++)
         {
-            int idx = Random.Range(0, pool.Count);
-            selected.Add(pool[idx]);
-            pool.RemoveAt(idx);
+            int idx = Random.Range(0, available.Count);
+            selected.Add(available[idx]);
+            available.RemoveAt(idx);
         }
+
         return selected;
     }
 
-    /// <summary>
-    /// Уничтожает все улучшения НА КАРТЕ вместе с tooltip'ами
-    /// </summary>
     public void DestroyAllUpgrades()
     {
         foreach (GameObject upgrade in spawnedUpgrades)
@@ -155,14 +129,11 @@ public class UpgradeSpawner : MonoBehaviour
             if (upgrade != null)
             {
                 UpgradePickup pickup = upgrade.GetComponent<UpgradePickup>();
-                if (pickup != null)
-                    pickup.CleanupAndDestroy();
-                else
-                    Destroy(upgrade);
+                if (pickup != null) pickup.CleanupAndDestroy();
+                else Destroy(upgrade);
             }
         }
         spawnedUpgrades.Clear();
-        if (debugLogs) Debug.Log("[UpgradeSpawner] Все улучшения уничтожены");
     }
 }
 
@@ -172,8 +143,7 @@ public class UpgradeData
     public GameObject prefab;
     public UpgradeType type;
     public float value = 0.2f;
-    public string displayName = "Улучшение";
-    [TextArea(2, 4)]
-    public string description = "Описание";
+    public string displayName = "Upgrade";
+    [TextArea(2, 4)] public string description = "Upgrade description";
     public Sprite icon;
 }

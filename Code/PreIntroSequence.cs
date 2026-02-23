@@ -56,9 +56,9 @@ public SpriteRenderer monsterSpriteRenderer; // 🔥 Перетащи SpriteRend
 
         switch (phaseNum)
         {
-            case 1: centerText.text = "НАЖМИТЕ, ЧТОБЫ НАЧАТЬ"; break;
-            case 2: centerText.text = "НАЖМИТЕ ЕЩЕ РАЗ, ЧТОБЫ НАЧАТЬ"; break;
-            case 3: centerText.text = "НАЖМИТЕ СИЛЬНЕЕ, ЧТОБЫ НАЧАТЬ"; break;
+            case 1: centerText.text = "PRESS TO START"; break;
+            case 2: centerText.text = "PRESS AGAIN TO START"; break;
+            case 3: centerText.text = "PRESS AGAIN, BUT HARDER TO START"; break;
         }
     }
 

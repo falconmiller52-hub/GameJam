@@ -1,13 +1,19 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// ИСПРАВЛЕНО: Камера теперь в LateUpdate вместо FixedUpdate.
+/// FixedUpdate вызывается 50 раз/сек, рендер — 60-144+.
+/// Это вызывало рассинхрон и "дёрганье" спрайта.
+/// LateUpdate вызывается каждый кадр ПОСЛЕ Update — идеально для камеры.
+/// </summary>
 public class DynamicCamera : MonoBehaviour
 {
     [Header("Targets")]
     public Transform player;
 
     [Header("Mouse Tracking")]
-    [Range(0f, 1f)] public float mouseBias = 0.25f; // Вместо reticle bias
+    [Range(0f, 1f)] public float mouseBias = 0.25f;
 
     [Header("Settings")]
     public float smoothSpeed = 5f;
@@ -26,19 +32,17 @@ public class DynamicCamera : MonoBehaviour
         camHalfWidth = camHalfHeight * cam.aspect;
     }
 
-    void FixedUpdate()
+    // 🔥 LateUpdate вместо FixedUpdate — убирает дёрганье
+    void LateUpdate()
     {
         if (player == null) return;
 
-        // 🔥 НОВАЯ ЛОГИКА: Игрок + позиция мыши
         Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
         Vector3 mouseWorldPos = cam.ScreenToWorldPoint(mouseScreenPos);
-        mouseWorldPos.z = 0f; // Важно для 2D!
+        mouseWorldPos.z = 0f;
 
-        // Интерполируем между игроком и мышью
         Vector3 targetPos = Vector3.Lerp(player.position, mouseWorldPos, mouseBias);
 
-        // Ограничения (как было)
         if (mapBounds != null)
         {
             Bounds bounds = mapBounds.bounds;
@@ -52,6 +56,7 @@ public class DynamicCamera : MonoBehaviour
         }
 
         targetPos.z = transform.position.z;
-        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.fixedDeltaTime);
+        // 🔥 Time.deltaTime вместо Time.fixedDeltaTime
+        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
     }
 }

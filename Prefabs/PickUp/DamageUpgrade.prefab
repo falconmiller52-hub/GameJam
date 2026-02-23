@@ -116,7 +116,7 @@ MonoBehaviour:
   nameFontSize: 4
   descFontSize: 3
   hintFontSize: 2.5
-  pickupRadius: 0.96
+  pickupRadius: 1.57
   tooltipShowRadius: 2
   pickupSound: {fileID: 8300000, guid: 0d0056e923a2735428a83ab638e78ccf, type: 3}
   pickupVolume: 0.8

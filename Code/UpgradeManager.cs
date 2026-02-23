@@ -1,25 +1,18 @@
 using UnityEngine;
 
-/// <summary>
-/// Менеджер применения улучшений. Все способности добавляются на объект PLAYER.
-/// 
-/// ИСПРАВЛЕНО: При создании PlayerShield через AddComponent — передаёт ему
-/// ссылки на спрайты и ShieldIcon из заранее настроенного префаба.
-/// </summary>
 public class UpgradeManager : MonoBehaviour
 {
     public static UpgradeManager Instance { get; private set; }
 
-    [Header("=== ПРЕФАБЫ ЭФФЕКТОВ ===")]
+    [Header("=== EFFECT PREFABS ===")]
     public GameObject redAuraPrefab;
     public GameObject electricShockPrefab;
     public GameObject fistsPrefab;
 
-    [Header("=== НАСТРОЙКИ ЩИТА ===")]
-    [Tooltip("Префаб Shield из папки Prefabs/Upgrades (для копирования настроек)")]
+    [Header("=== SHIELD SETTINGS ===")]
     public GameObject shieldSettingsPrefab;
 
-    [Header("=== ССЫЛКИ ===")]
+    [Header("=== REFERENCES ===")]
     public GameObject playerObject;
     public PlayerUpgrades playerUpgrades;
     public WeaponSwitcher weaponSwitcher;
@@ -43,11 +36,7 @@ public class UpgradeManager : MonoBehaviour
         if (playerObject == null)
         {
             playerObject = GameObject.FindGameObjectWithTag("Player");
-            if (playerObject == null)
-            {
-                Debug.LogError("[UpgradeManager] Player НЕ НАЙДЕН!");
-                return;
-            }
+            if (playerObject == null) { Debug.LogError("[UpgradeManager] Player not found!"); return; }
         }
         if (playerUpgrades == null) playerUpgrades = playerObject.GetComponent<PlayerUpgrades>();
         if (weaponSwitcher == null) weaponSwitcher = playerObject.GetComponent<WeaponSwitcher>();
@@ -58,7 +47,7 @@ public class UpgradeManager : MonoBehaviour
         if (playerObject == null) FindPlayer();
         if (playerObject == null) return;
 
-        Debug.Log($"[UpgradeManager] Применяем: {type}, значение: {value}");
+        Debug.Log($"[UpgradeManager] Applying: {type}, value: {value}");
 
         switch (type)
         {
@@ -69,17 +58,17 @@ public class UpgradeManager : MonoBehaviour
                 if (playerUpgrades != null) playerUpgrades.ApplyUpgrade(type, value);
                 break;
             case UpgradeType.RedAura:
-                ApplyRedAura(); MarkAbilityObtained(type); break;
+                ApplyRedAura(); MarkAbility(type); break;
             case UpgradeType.ElectricShock:
-                ApplyElectricShock(); MarkAbilityObtained(type); break;
+                ApplyElectricShock(); MarkAbility(type); break;
             case UpgradeType.Shield:
-                ApplyShield((int)value); MarkAbilityObtained(type); break;
+                ApplyShield((int)value); MarkAbility(type); break;
             case UpgradeType.Fists:
-                ApplyFists(); MarkAbilityObtained(type); break;
+                ApplyFists(); MarkAbility(type); break;
         }
     }
 
-    void MarkAbilityObtained(UpgradeType type)
+    void MarkAbility(UpgradeType type)
     {
         if (upgradeSpawner == null) upgradeSpawner = FindObjectOfType<UpgradeSpawner>();
         if (upgradeSpawner != null) upgradeSpawner.MarkAsObtained(type);
@@ -89,12 +78,7 @@ public class UpgradeManager : MonoBehaviour
     {
         RedAura existing = playerObject.GetComponent<RedAura>();
         if (existing != null) { existing.Upgrade(0.5f, 1f); return; }
-
-        if (redAuraPrefab != null)
-        {
-            GameObject obj = Instantiate(redAuraPrefab, playerObject.transform);
-            obj.transform.localPosition = Vector3.zero;
-        }
+        if (redAuraPrefab != null) { GameObject o = Instantiate(redAuraPrefab, playerObject.transform); o.transform.localPosition = Vector3.zero; }
         else playerObject.AddComponent<RedAura>();
     }
 
@@ -102,12 +86,7 @@ public class UpgradeManager : MonoBehaviour
     {
         ElectricShock existing = playerObject.GetComponent<ElectricShock>();
         if (existing != null) { existing.Upgrade(1, 1); return; }
-
-        if (electricShockPrefab != null)
-        {
-            GameObject obj = Instantiate(electricShockPrefab, playerObject.transform);
-            obj.transform.localPosition = Vector3.zero;
-        }
+        if (electricShockPrefab != null) { GameObject o = Instantiate(electricShockPrefab, playerObject.transform); o.transform.localPosition = Vector3.zero; }
         else playerObject.AddComponent<ElectricShock>();
     }
 
@@ -116,40 +95,36 @@ public class UpgradeManager : MonoBehaviour
         PlayerShield existing = playerObject.GetComponent<PlayerShield>();
         if (existing != null) { existing.Upgrade(val); return; }
 
-        // 🔥 Добавляем компонент на Player
         PlayerShield shield = playerObject.AddComponent<PlayerShield>();
         shield.maxShield = val > 0 ? val : 1;
         shield.currentShield = shield.maxShield;
 
-        // 🔥 КЛЮЧЕВОЕ: копируем настройки спрайтов из префаба
         if (shieldSettingsPrefab != null)
         {
-            PlayerShield prefabShield = shieldSettingsPrefab.GetComponent<PlayerShield>();
-            if (prefabShield != null)
+            PlayerShield ps = shieldSettingsPrefab.GetComponent<PlayerShield>();
+            if (ps != null)
             {
-                shield.shieldFullSprite = prefabShield.shieldFullSprite;
-                shield.shieldBrokenSprite = prefabShield.shieldBrokenSprite;
-                shield.shockwaveEffectPrefab = prefabShield.shockwaveEffectPrefab;
-                shield.shockwaveFrames = prefabShield.shockwaveFrames;
-                shield.shockwaveFrameTime = prefabShield.shockwaveFrameTime;
-                shield.shockwaveVisualScale = prefabShield.shockwaveVisualScale;
-                shield.shockwaveRadius = prefabShield.shockwaveRadius;
-                shield.knockbackForce = prefabShield.knockbackForce;
-                shield.shockwaveDamage = prefabShield.shockwaveDamage;
-                shield.regenTime = prefabShield.regenTime;
-                shield.regenDelay = prefabShield.regenDelay;
-                shield.shieldHitSound = prefabShield.shieldHitSound;
-                shield.hitVolume = prefabShield.hitVolume;
-                shield.shieldRegenSound = prefabShield.shieldRegenSound;
-                shield.regenVolume = prefabShield.regenVolume;
-                shield.shieldBreakSound = prefabShield.shieldBreakSound;
-                shield.breakVolume = prefabShield.breakVolume;
-                
-                Debug.Log("[UpgradeManager] Настройки щита скопированы из префаба!");
+                shield.shieldFullSprite = ps.shieldFullSprite;
+                shield.shieldBrokenSprite = ps.shieldBrokenSprite;
+                shield.shockwaveEffectPrefab = ps.shockwaveEffectPrefab;
+                shield.shockwaveFrames = ps.shockwaveFrames;
+                shield.shockwaveFrameTime = ps.shockwaveFrameTime;
+                shield.shockwaveVisualScale = ps.shockwaveVisualScale;
+                shield.shockwaveRadius = ps.shockwaveRadius;
+                shield.knockbackForce = ps.knockbackForce;
+                shield.shockwaveDamage = ps.shockwaveDamage;
+                shield.regenTime = ps.regenTime;
+                shield.regenDelay = ps.regenDelay;
+                shield.shieldHitSound = ps.shieldHitSound;
+                shield.hitVolume = ps.hitVolume;
+                shield.shieldRegenSound = ps.shieldRegenSound;
+                shield.regenVolume = ps.regenVolume;
+                shield.shieldBreakSound = ps.shieldBreakSound;
+                shield.breakVolume = ps.breakVolume;
             }
         }
 
-        Debug.Log($"[UpgradeManager] Щит добавлен на Player! maxShield={shield.maxShield}");
+        Debug.Log($"[UpgradeManager] Shield added! maxShield={shield.maxShield}");
     }
 
     void ApplyFists()
@@ -164,6 +139,14 @@ public class UpgradeManager : MonoBehaviour
             GameObject obj = Instantiate(fistsPrefab, playerObject.transform);
             weaponSwitcher.fistsWeapon = obj;
             weaponSwitcher.UnlockFists();
+        }
+
+        // 🔥 Show tutorial hint: "Press Q to switch weapon"
+        PlayerTutorial tutorial = playerObject.GetComponent<PlayerTutorial>();
+        if (tutorial != null)
+        {
+            tutorial.ShowCustomMessage("Press Q to switch weapon");
+            Debug.Log("[UpgradeManager] Fists unlocked! Tutorial hint shown.");
         }
     }
 
