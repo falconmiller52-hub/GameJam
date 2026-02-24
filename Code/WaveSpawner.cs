@@ -160,7 +160,7 @@ public class WaveSpawner : MonoBehaviour
 
     void Update()
     {
-        if (isInBreak && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) skipRequested = true;
+        // Скип волны убран — игрок должен ждать таймер
     }
 
     void HideAllUI()
@@ -430,15 +430,38 @@ public class WaveSpawner : MonoBehaviour
         for (int i = 0; i < endingDialogueLines.Length; i++)
         {
             SetDT("");
+            
+            // 🔥 ИСПРАВЛЕНО: клик ускоряет печать, а не пропускает строку
+            float currentTypingSpeed = typingSpeed;
+            float fastTypingSpeed = typingSpeed * 0.15f; // В ~7 раз быстрее при зажатии
+            bool lineComplete = false;
+            
             foreach (char c in endingDialogueLines[i].ToCharArray())
             {
                 SetDT(GetDT() + c);
-                if (voiceClip != null && c != ' ') { sfx.pitch = 1f + Random.Range(-voicePitchVariation, voicePitchVariation); sfx.PlayOneShot(voiceClip, voiceVolume); }
-                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) { SetDT(endingDialogueLines[i]); break; }
-                yield return new WaitForSeconds(typingSpeed);
+                
+                // Голос для каждого символа
+                if (voiceClip != null && c != ' ')
+                {
+                    sfx.pitch = 1f + Random.Range(-voicePitchVariation, voicePitchVariation);
+                    sfx.PlayOneShot(voiceClip, voiceVolume);
+                }
+                
+                // Клик ускоряет, но НЕ пропускает
+                float speed = currentTypingSpeed;
+                if (Mouse.current != null && Mouse.current.leftButton.isPressed)
+                    speed = fastTypingSpeed;
+                    
+                yield return new WaitForSeconds(speed);
             }
+            
+            // Ждём клика для перехода к следующей реплике
             yield return null;
-            while (true) { if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) break; yield return null; }
+            while (true)
+            {
+                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) break;
+                yield return null;
+            }
         }
         SetDT("");
     }
@@ -471,9 +494,10 @@ public class WaveSpawner : MonoBehaviour
     IEnumerator ShowCountdown()
     {
         SetCG(countdownCanvasGroup, 1f, true);
-        if (skipHintText != null) skipHintText.text = "Press R to skip";
+        // Убрана надпись "Press R to skip" и возможность скипа
+        if (skipHintText != null) skipHintText.text = "";
         float remaining = breakDuration;
-        while (remaining > 0 && !skipRequested && !upgradePickedUp)
+        while (remaining > 0 && !upgradePickedUp)
         { if (countdownText != null) countdownText.text = $"Next wave in: {Mathf.CeilToInt(remaining)}"; remaining -= Time.deltaTime; yield return null; }
         if (countdownCanvasGroup != null) { yield return FadeCG(countdownCanvasGroup, 1f, 0f, 0.3f); countdownCanvasGroup.gameObject.SetActive(false); }
         if (upgradeSpawner != null) upgradeSpawner.DestroyAllUpgrades();

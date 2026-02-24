@@ -86,6 +86,18 @@ public class PlayerSpawnAnimation : MonoBehaviour
 
         if (weaponPivot != null) weaponPivot.SetActive(true);
         if (disableControlsDuringSpawn) SetControls(true);
+        
+        // 🔥 ИСПРАВЛЕНИЕ: Принудительно возвращаем аниматор в нормальное состояние
+        // Без этого после спавна анимация ходьбы может не проигрываться,
+        // потому что аниматор застревает в состоянии Spawn
+        if (playerAnimator != null)
+        {
+            playerAnimator.ResetTrigger(spawnTrigger);
+            playerAnimator.SetFloat("Speed", 0f);
+            // Пробуем Play Idle — если такое состояние есть, оно активируется
+            playerAnimator.Play("Idle", 0, 0f);
+        }
+        
         isSpawning = false;
     }
 

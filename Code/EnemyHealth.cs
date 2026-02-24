@@ -83,13 +83,29 @@ public class EnemyHealth : MonoBehaviour
         var ai = GetComponent<EnemyAI>();
         if (ai != null) ai.enabled = false;
 
+        // 🔥 СНАЧАЛА прерываем все атаки (они могут сбрасывать триггеры!)
         // Disable jump attack if present
         var jumpAttack = GetComponent<EnemyJumpAttack>();
         if (jumpAttack != null) { jumpAttack.InterruptJump(); jumpAttack.enabled = false; }
 
+        // 🔥 Disable dash attack if present
+        var dashAttack = GetComponent<EnemyDash>();
+        if (dashAttack != null) { dashAttack.InterruptDash(); dashAttack.enabled = false; }
+
+        // 🔥 Disable ranged AI if present
+        var rangedAI = GetComponent<EnemyRangedAI>();
+        if (rangedAI != null) { rangedAI.InterruptAction(); rangedAI.enabled = false; }
+
         if (rb != null) { rb.gravityScale = 0f; rb.linearDamping = 5f; rb.linearVelocity = Vector2.zero; }
-        if (anim != null) anim.SetTrigger("Die");
         if (sr != null) sr.color = Color.white;
+
+        // 🔥 ПОТОМ ставим триггер Die — после того как все ResetTrigger уже отработали
+        if (anim != null)
+        {
+            // Сбрасываем все возможные триггеры, чтобы Die точно сработал
+            anim.ResetTrigger("Die");
+            anim.SetTrigger("Die");
+        }
 
         if (deathSound != null)
         {

@@ -206,7 +206,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   playerTarget: {fileID: 0}
-  speed: 4
+  speed: 2.8
 --- !u!114 &8263238396763440880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,7 +232,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d7c16f1843524348990cc4babc29b0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  health: 4
+  health: 5
   deathSound: {fileID: 8300000, guid: d2f1746055f9233479bbc3e0199c7b60, type: 3}
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
@@ -280,7 +280,7 @@ MonoBehaviour:
   telegraphSound: {fileID: 0}
   telegraphVolume: 0.6
   jumpSound: {fileID: 8300000, guid: 50ee2c9db5118834ca75a5b9a893df34, type: 3}
-  jumpVolume: 0.7
+  jumpVolume: 0.609
   landSound: {fileID: 8300000, guid: ebfb6a8b080bf744e8b155f5ccd7171c, type: 3}
   landVolume: 1
   showDebugGizmos: 1

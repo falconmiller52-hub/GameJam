@@ -348,7 +348,7 @@ Transform:
   m_GameObject: {fileID: 8624805761018563706}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.093502, y: 0.95989203, z: 0}
+  m_LocalPosition: {x: 5.11, y: 0.95989203, z: 0}
   m_LocalScale: {x: 4.14, y: 4.14, z: 4.14}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -379,6 +379,9 @@ MonoBehaviour:
   punchReturnTime: 0.15
   leftFist: {fileID: 1033724087900900106}
   rightFist: {fileID: 3090584337252298508}
+  leftFistOffset: {x: 0.47, y: 0.1, z: 0}
+  rightFistOffset: {x: -0.04, y: -0.82, z: 0}
+  autoPositionFists: 1
   leftFistAnimator: {fileID: 534251790606195179}
   rightFistAnimator: {fileID: 7723214067741428405}
   punchTrigger: Punch

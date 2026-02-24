@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -7.36, y: 2.77, z: 0}
-  m_LocalScale: {x: 0.64, y: 0.64, z: 0.64}
+  m_LocalScale: {x: 0.6700001, y: 0.6700001, z: 0.6700001}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -143,8 +143,8 @@ MonoBehaviour:
   animator: {fileID: 2899425538659645541}
   shootTrigger: Shoot
   isMovingBool: IsMoving
-  shootSound: {fileID: 8300000, guid: dac266e33541d2f4db46b74a7a20c669, type: 3}
-  shootVolume: 0.7
+  shootSound: {fileID: 8300000, guid: e4291d2539ac02645ae072c2e2427025, type: 3}
+  shootVolume: 0.65
   aimingColor: {r: 1, g: 0.8, b: 0.3, a: 1}
   showAimLine: 1
   aimLineColor: {r: 1, g: 0, b: 0, a: 0.5}
@@ -175,7 +175,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d7c16f1843524348990cc4babc29b0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  health: 2
+  health: 3
   deathSound: {fileID: 8300000, guid: d2f1746055f9233479bbc3e0199c7b60, type: 3}
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1

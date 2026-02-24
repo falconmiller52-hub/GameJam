@@ -57,8 +57,14 @@ public class ElectricShock : MonoBehaviour
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
-        if (lightningShort == null || lightningMedium == null || lightningLong == null)
-            CreateDefaultSprites();
+        // Создаём дефолтные спрайты ТОЛЬКО для тех, что не назначены
+        // (раньше создавались только если ВСЕ три null — если назначен один, остальные оставались null)
+        if (lightningShort == null)
+            lightningShort = CreateLightningSprite(32, 8);
+        if (lightningMedium == null)
+            lightningMedium = CreateLightningSprite(64, 8);
+        if (lightningLong == null)
+            lightningLong = CreateLightningSprite(128, 8);
 
         isActive = true;
         Debug.Log("[ElectricShock] Электрошок активирован!");
@@ -151,13 +157,28 @@ public class ElectricShock : MonoBehaviour
 
         float distance = Vector2.Distance(from, to);
 
-        // Выбор спрайта по настраиваемым порогам
-        if (distance <= shortMaxDistance)
-            sr.sprite = lightningShort;
-        else if (distance <= mediumMaxDistance)
-            sr.sprite = lightningMedium;
+        // Выбор спрайта по настраиваемым порогам (с fallback)
+        Sprite chosenSprite;
+        if (distance <= shortMaxDistance && lightningShort != null)
+            chosenSprite = lightningShort;
+        else if (distance <= mediumMaxDistance && lightningMedium != null)
+            chosenSprite = lightningMedium;
+        else if (lightningLong != null)
+            chosenSprite = lightningLong;
         else
-            sr.sprite = lightningLong;
+            chosenSprite = lightningMedium ?? lightningShort; // fallback
+
+        if (chosenSprite != null)
+        {
+            sr.sprite = chosenSprite;
+        }
+        else
+        {
+            // Все спрайты null — используем LineRenderer
+            CreateLineRendererFallback(obj, from, to);
+            activeLightnings.Add(obj);
+            return;
+        }
 
         // Поворот
         Vector3 dir = (to - from).normalized;

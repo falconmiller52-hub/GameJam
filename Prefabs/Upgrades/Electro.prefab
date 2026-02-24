@@ -82,15 +82,15 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -3900425482964261918, guid: ee6cf89baf35c2c46b989786aaed9e2b, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.06, y: 0.06}
+  m_Size: {x: 5, y: 5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!114 &1337402005340011683
 MonoBehaviour:
@@ -104,17 +104,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c8f03342ee4cf84db2a28fb02a46281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ElectricShock
-  damagePerHit: 2
-  maxChainTargets: 4
-  shockCooldown: 2
-  detectionRadius: 4
-  chainJumpRadius: 4
-  lightningShort: {fileID: 3947083168471363929, guid: 7c4d12d0d6ad49c4da6fdad2006dffe2, type: 3}
-  lightningMedium: {fileID: -5339867879282374224, guid: fb1f802ddc136ed4c92e4067afee65af, type: 3}
-  lightningLong: {fileID: -6584043425369596066, guid: d66a8768eacbc624da88369502baa7df, type: 3}
-  shortMaxDistance: 2
-  mediumMaxDistance: 3
-  lightningColor: {r: 0.5, g: 0.8, b: 1, a: 1}
+  damagePerHit: 1
+  maxChainTargets: 3
+  shockCooldown: 4
+  detectionRadius: 2.73
+  chainJumpRadius: 2.73
+  lightningShort: {fileID: 21300000, guid: 7c4d12d0d6ad49c4da6fdad2006dffe2, type: 3}
+  lightningMedium: {fileID: 21300000, guid: fb1f802ddc136ed4c92e4067afee65af, type: 3}
+  lightningLong: {fileID: 21300000, guid: d66a8768eacbc624da88369502baa7df, type: 3}
+  shortMaxDistance: 0.35
+  mediumMaxDistance: 0.84
+  lightningColor: {r: 1, g: 1, b: 1, a: 1}
   lightningDisplayTime: 0.15
   shockSound: {fileID: 8300000, guid: 0464e85ec2f137046a2a4ce62f2317b6, type: 3}
   shockVolume: 0.6

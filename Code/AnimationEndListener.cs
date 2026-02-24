@@ -14,8 +14,7 @@ public class AnimationEndListener : MonoBehaviour
 
     void LoadGameOverScreen()
     {
-        // Загружаем сцену с надписью "ВЫ СЪЕДЕНЫ"
-        // Убедитесь, что сцена называется именно так
-        SceneManager.LoadScene("GameOver"); 
+        // 🔥 ИСПРАВЛЕНО: было "GameOver", такой сцены нет
+        SceneManager.LoadScene("MainMenu"); 
     }
 }

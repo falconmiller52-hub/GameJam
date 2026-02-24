@@ -12,7 +12,7 @@ public class DeathDialogueManager : MonoBehaviour
     public AudioSource musicSource;
 
     [Header("Transition")]
-    public string nextSceneName = "GameOver"; // GameOver сцена
+    public string nextSceneName = "MainMenu"; // 🔥 ИСПРАВЛЕНО: было "GameOver", такой сцены нет
     public float fadeDuration = 1.5f;
 
     private CanvasGroup fadeGroup;

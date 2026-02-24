@@ -36,6 +36,7 @@ public class RedAura : MonoBehaviour
     private AudioSource audioSource;
     private float lastDamageTime;
     private bool isActive = false;
+    private bool wasCreatedProgrammatically = false; // Флаг: спрайт создан кодом или из префаба
 
     void Start()
     {
@@ -45,12 +46,19 @@ public class RedAura : MonoBehaviour
 
         // Если спрайт не назначен — создаём программный
         if (auraSprite == null)
+        {
             CreateAuraVisual();
+            wasCreatedProgrammatically = true;
+        }
 
-        // Размер
+        // Размер — перезаписываем ТОЛЬКО для программного спрайта!
+        // Если спрайт из префаба — он уже имеет нужный масштаб, не трогаем
         if (auraSprite != null)
         {
-            auraSprite.transform.localScale = Vector3.one * auraRadius * 2f;
+            if (wasCreatedProgrammatically)
+            {
+                auraSprite.transform.localScale = Vector3.one * auraRadius * 2f;
+            }
             auraSprite.color = auraColor;
         }
 
@@ -151,7 +159,8 @@ public class RedAura : MonoBehaviour
     {
         auraRadius += radiusBonus;
         damagePerTick += Mathf.RoundToInt(damageBonus);
-        if (auraSprite != null)
+        // Масштабируем только программно созданный спрайт
+        if (wasCreatedProgrammatically && auraSprite != null)
             auraSprite.transform.localScale = Vector3.one * auraRadius * 2f;
     }
 

@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d7c16f1843524348990cc4babc29b0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  health: 2
+  health: 3
   deathSound: {fileID: 8300000, guid: d2f1746055f9233479bbc3e0199c7b60, type: 3}
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
@@ -257,7 +257,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashCooldown: 3
   useTelegraph: 1
-  telegraphDuration: 0.5
+  telegraphDuration: 0.27
   telegraphColor: {r: 1, g: 1, b: 1, a: 1}
   blinkDuringTelegraph: 1
   blinkSpeed: 10
