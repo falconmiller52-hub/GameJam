@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.23605, y: 2.8125, z: 0}
-  m_LocalScale: {x: 0.21, y: 0.21, z: 0.21}
+  m_LocalScale: {x: 0.18, y: 0.18, z: 0.18}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -129,6 +129,7 @@ MonoBehaviour:
   flashDuration: 0.1
   flyToMonsterSpeed: 8
   flyDelay: 0.5
+  maxDeathLifetime: 5
 --- !u!114 &6544763583359803657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -203,7 +204,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.064656615, y: 0.5724484}
+  m_Offset: {x: -0.1741401, y: 0.57244825}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -213,7 +214,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 3.9280736, y: 4.285718}
+  m_Size: {x: 3.4504802, y: 4.285718}
   m_EdgeRadius: 0
 --- !u!95 &8970844227463690968
 Animator:

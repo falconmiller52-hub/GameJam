@@ -34,7 +34,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.2147, y: 0.55146, z: 0}
-  m_LocalScale: {x: 0.18, y: 0.18, z: 0.18}
+  m_LocalScale: {x: 0.14, y: 0.14, z: 0.14}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -130,6 +130,7 @@ MonoBehaviour:
   flashDuration: 0.1
   flyToMonsterSpeed: 8
   flyDelay: 0.5
+  maxDeathLifetime: 5
 --- !u!114 &6067227316894041601
 MonoBehaviour:
   m_ObjectHideFlags: 0

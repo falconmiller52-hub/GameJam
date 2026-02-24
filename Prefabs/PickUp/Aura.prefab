@@ -119,6 +119,6 @@ MonoBehaviour:
   pickupRadius: 1.13
   tooltipShowRadius: 1.95
   pickupSound: {fileID: 8300000, guid: 0d0056e923a2735428a83ab638e78ccf, type: 3}
-  pickupVolume: 0.8
+  pickupVolume: 1
   flyOutDuration: 0.8
   flyOutHeight: 2

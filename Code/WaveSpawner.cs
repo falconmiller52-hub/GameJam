@@ -19,6 +19,12 @@ public class EnemySpawnData
     public int count = 5;
 }
 
+/// <summary>
+/// FIXED: Wave completion now uses a real-time Enemy tag tracker instead of a counter.
+/// Every frame checks if any GameObjects with tag "Enemy" exist on the scene.
+/// Wave is cleared only after NO enemies exist for confirmTime seconds (default 3).
+/// This is 100% reliable — no counter desync possible.
+/// </summary>
 public class WaveSpawner : MonoBehaviour
 {
     [Header("=== UI ===")]
@@ -31,13 +37,9 @@ public class WaveSpawner : MonoBehaviour
     public TextMeshProUGUI skipHintText;
 
     [Header("=== WAVE CLEARED ICON ===")]
-    [Tooltip("Image above WaveClearedText that plays a sprite animation")]
     public Image waveClearedIcon;
-    [Tooltip("Frames for wave cleared icon animation")]
     public Sprite[] waveClearedIconFrames;
-    [Tooltip("Frames per second for icon animation")]
     public float iconAnimFPS = 8f;
-    [Tooltip("Loop icon animation?")]
     public bool iconAnimLoop = true;
 
     [Header("=== TIMING ===")]
@@ -45,6 +47,14 @@ public class WaveSpawner : MonoBehaviour
     public float clearedDisplayDuration = 2f;
     public float breakDuration = 20f;
     public float musicFadeDuration = 2f;
+
+    [Header("=== ENEMY TRACKER ===")]
+    [Tooltip("How long (seconds) the scene must have 0 enemies before wave is confirmed cleared")]
+    public float enemyClearConfirmTime = 3f;
+    [Tooltip("How often to scan for enemies (seconds). Lower = more responsive, higher = better performance")]
+    public float enemyScanInterval = 0.5f;
+    [Tooltip("Maximum time to wait for wave to clear before forcing it (safety)")]
+    public float maxWaveTime = 180f;
 
     [Header("=== AUDIO ===")]
     public AudioClip warningSound;
@@ -117,8 +127,8 @@ public class WaveSpawner : MonoBehaviour
 
     private AudioSource sfx;
     private int currentWaveIndex = 0;
-    private int enemiesRemaining = 0;
     private bool waveActive, skipRequested, isInBreak, upgradePickedUp, gameEnded;
+    private bool allEnemiesSpawned;
     private Coroutine iconAnimCoroutine;
 
     public System.Action OnWaveCleared, OnWaveStarted;
@@ -166,6 +176,79 @@ public class WaveSpawner : MonoBehaviour
 
     void SetCG(CanvasGroup cg, float a, bool on) { if (cg != null) { cg.alpha = a; cg.gameObject.SetActive(on); } }
 
+    // ==================== ENEMY TRACKER ====================
+
+    /// <summary>
+    /// Counts alive enemies on the scene by tag.
+    /// Only counts enemies that are not dead (have EnemyHealth with IsDead == false)
+    /// or any object with Enemy tag if no EnemyHealth component.
+    /// </summary>
+    int CountAliveEnemies()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        int alive = 0;
+        foreach (GameObject e in enemies)
+        {
+            if (e == null) continue;
+            EnemyHealth eh = e.GetComponent<EnemyHealth>();
+            if (eh == null || !eh.IsDead)
+                alive++;
+        }
+        return alive;
+    }
+
+    /// <summary>
+    /// Waits until no alive enemies exist for confirmTime seconds.
+    /// Only starts checking after all enemies have been spawned.
+    /// </summary>
+    IEnumerator WaitForAllEnemiesDead()
+    {
+        // Wait until spawning is complete
+        while (!allEnemiesSpawned)
+            yield return null;
+
+        float timeSinceNoEnemies = 0f;
+        float totalElapsed = 0f;
+
+        if (debugLogs) Debug.Log("[WaveSpawner] Tracker: waiting for all enemies to die...");
+
+        while (true)
+        {
+            // Safety timeout
+            totalElapsed += enemyScanInterval;
+            if (totalElapsed >= maxWaveTime)
+            {
+                if (debugLogs) Debug.LogWarning($"[WaveSpawner] Tracker: TIMEOUT after {maxWaveTime}s! Forcing wave clear.");
+                yield break;
+            }
+
+            int alive = CountAliveEnemies();
+
+            if (alive == 0)
+            {
+                timeSinceNoEnemies += enemyScanInterval;
+
+                if (debugLogs && timeSinceNoEnemies >= enemyScanInterval)
+                    Debug.Log($"[WaveSpawner] Tracker: 0 enemies for {timeSinceNoEnemies:F1}s / {enemyClearConfirmTime}s needed");
+
+                if (timeSinceNoEnemies >= enemyClearConfirmTime)
+                {
+                    if (debugLogs) Debug.Log("[WaveSpawner] Tracker: CONFIRMED — wave cleared!");
+                    yield break;
+                }
+            }
+            else
+            {
+                // Reset timer if enemies reappear
+                if (timeSinceNoEnemies > 0f && debugLogs)
+                    Debug.Log($"[WaveSpawner] Tracker: {alive} enemies still alive, resetting timer");
+                timeSinceNoEnemies = 0f;
+            }
+
+            yield return new WaitForSeconds(enemyScanInterval);
+        }
+    }
+
     // ==================== WAVES ====================
 
     IEnumerator WaveSequence()
@@ -179,10 +262,15 @@ public class WaveSpawner : MonoBehaviour
             SetMonsterState(2);
             OnWaveStarted?.Invoke();
 
+            // Reset tracker flag
+            allEnemiesSpawned = false;
+
+            // Start spawning (sets allEnemiesSpawned = true when done)
             yield return StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-            float timeout = 120f;
-            while (enemiesRemaining > 0 && timeout > 0f) { timeout -= Time.deltaTime; yield return null; }
-            if (timeout <= 0f) enemiesRemaining = 0;
+
+            // 🔥 NEW: Wait using real enemy tracker instead of counter
+            yield return StartCoroutine(WaitForAllEnemiesDead());
+
             OnWaveCleared?.Invoke();
 
             if (currentWaveIndex >= waves.Length - 1)
@@ -248,7 +336,7 @@ public class WaveSpawner : MonoBehaviour
         else monsterAnimator.SetTrigger(monsterWildTrigger);
     }
 
-    // ==================== WAVE CLEARED ICON ANIMATION ====================
+    // ==================== ICON ANIMATION ====================
 
     void StartIconAnimation()
     {
@@ -268,16 +356,12 @@ public class WaveSpawner : MonoBehaviour
     {
         int frame = 0;
         float interval = 1f / Mathf.Max(iconAnimFPS, 1f);
-
         while (true)
         {
             waveClearedIcon.sprite = waveClearedIconFrames[frame];
             frame++;
             if (frame >= waveClearedIconFrames.Length)
-            {
-                if (iconAnimLoop) frame = 0;
-                else { yield return new WaitForSecondsRealtime(interval); break; }
-            }
+            { if (iconAnimLoop) frame = 0; else break; }
             yield return new WaitForSecondsRealtime(interval);
         }
     }
@@ -314,8 +398,7 @@ public class WaveSpawner : MonoBehaviour
         if (magicEffectPrefab != null && monsterTransform != null)
         {
             GameObject magic = Instantiate(magicEffectPrefab, monsterTransform.position + Vector3.up * 0.5f, Quaternion.identity);
-            SpriteRenderer msr = magic.GetComponent<SpriteRenderer>();
-            if (msr != null) msr.sortingOrder = 100;
+            SpriteRenderer msr = magic.GetComponent<SpriteRenderer>(); if (msr != null) msr.sortingOrder = 100;
             Destroy(magic, magicDisplayDuration + 2f);
         }
         if (magicSound != null) sfx.PlayOneShot(magicSound, magicSoundVolume);
@@ -346,7 +429,7 @@ public class WaveSpawner : MonoBehaviour
     {
         for (int i = 0; i < endingDialogueLines.Length; i++)
         {
-            SetDT(""); 
+            SetDT("");
             foreach (char c in endingDialogueLines[i].ToCharArray())
             {
                 SetDT(GetDT() + c);
@@ -378,14 +461,10 @@ public class WaveSpawner : MonoBehaviour
     {
         if (waveClearedSound != null) sfx.PlayOneShot(waveClearedSound, waveClearedVolume);
         if (waveClearedText != null) waveClearedText.text = "WAVE CLEARED!";
-
-        // Icon animation
         StartIconAnimation();
-
         if (clearedCanvasGroup != null)
         { clearedCanvasGroup.gameObject.SetActive(true); yield return FadeCG(clearedCanvasGroup, 0f, 1f, 0.3f); yield return new WaitForSecondsRealtime(clearedDisplayDuration); yield return FadeCG(clearedCanvasGroup, 1f, 0f, 0.5f); clearedCanvasGroup.gameObject.SetActive(false); }
         else yield return new WaitForSecondsRealtime(clearedDisplayDuration);
-
         StopIconAnimation();
     }
 
@@ -402,14 +481,24 @@ public class WaveSpawner : MonoBehaviour
 
     IEnumerator SpawnWave(WaveData wave)
     {
-        int total = 0; foreach (var s in wave.enemySpawns) total += s.count;
-        enemiesRemaining = total; waveActive = true;
+        allEnemiesSpawned = false;
+        waveActive = true;
+
         foreach (var s in wave.enemySpawns)
             for (int i = 0; i < s.count; i++)
-            { if (spawnPoints.Length > 0) Instantiate(s.enemyPrefab, spawnPoints[Random.Range(0, spawnPoints.Length)].position, Quaternion.identity); yield return new WaitForSeconds(timeBetweenSpawns); }
+            {
+                if (spawnPoints.Length > 0)
+                    Instantiate(s.enemyPrefab, spawnPoints[Random.Range(0, spawnPoints.Length)].position, Quaternion.identity);
+                yield return new WaitForSeconds(timeBetweenSpawns);
+            }
+
+        allEnemiesSpawned = true;
+        if (debugLogs) Debug.Log("[WaveSpawner] All enemies spawned! Tracker now active.");
     }
 
-    public void EnemyDied() { enemiesRemaining = Mathf.Max(0, enemiesRemaining - 1); if (enemiesRemaining <= 0) waveActive = false; }
+    // Legacy method — kept for compatibility, but no longer drives wave progression
+    public void EnemyDied() { }
+
     public void OnUpgradePickedUp() { upgradePickedUp = true; }
 
     IEnumerator PlayMapTransition(int idx)

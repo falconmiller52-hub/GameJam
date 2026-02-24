@@ -16,7 +16,7 @@ public class PlayerTutorial : MonoBehaviour
 
     [Header("Animation")]
     public float typingSpeed = 0.08f;
-    public string tutorialMessage = "";
+    public string tutorialMessage = "Press Space to dash";
 
     [Header("Position")]
     public Vector3 offsetFromPlayer = new Vector3(0, 2f, 0);
@@ -76,7 +76,7 @@ public class PlayerTutorial : MonoBehaviour
 
     IEnumerator TypeText(string message)
     {
-        tutorialText.text = "Press Spacebar to Dash";
+        tutorialText.text = "";
         foreach (char letter in message)
         {
             tutorialText.text += letter;
