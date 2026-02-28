@@ -6,8 +6,14 @@ using System.Collections.Generic;
 public class FistsWeapon : MonoBehaviour
 {
     [Header("=== DAMAGE ===")]
-    public int damage = 4;
+    public int damage = 2;
     public float knockbackForce = 12f;
+
+    [Header("=== COMBO FATIGUE (усталость руки) ===")]
+    [Tooltip("Сколько ударов одной рукой подряд до снижения урона")]
+    public int fatigueThreshold = 3;
+    [Tooltip("Сниженный урон при усталости")]
+    public int fatigueDamage = 1;
 
     [Header("=== COOLDOWNS ===")]
     public float leftAttackCooldown = 0.4f;
@@ -51,6 +57,8 @@ public class FistsWeapon : MonoBehaviour
     private AudioSource audioSource;
     private float lastLeftTime = -999f, lastRightTime = -999f, lastAnyTime = -999f;
     private bool isAttacking;
+    private bool lastPunchWasLeft; // 🔥 Какой рукой был последний удар
+    private int sameHandCombo = 0;  // 🔥 Счётчик ударов одной рукой подряд
     private List<GameObject> hitEnemies = new List<GameObject>();
     private WeaponSwitcher weaponSwitcher;
     private Vector3 leftStartPos, rightStartPos;
@@ -106,6 +114,17 @@ public class FistsWeapon : MonoBehaviour
         if (left) lastLeftTime = Time.time; else lastRightTime = Time.time;
         lastAnyTime = Time.time;
 
+        // 🔥 COMBO FATIGUE: отслеживаем удары одной рукой
+        if (left == lastPunchWasLeft)
+        {
+            sameHandCombo++;
+        }
+        else
+        {
+            sameHandCombo = 1; // Сменил руку — сброс
+        }
+        lastPunchWasLeft = left;
+
         Transform fist = left ? leftFist : rightFist;
         Collider2D col = left ? leftFistCollider : rightFistCollider;
         AudioClip snd = left ? leftPunchSound : rightPunchSound;
@@ -138,7 +157,13 @@ public class FistsWeapon : MonoBehaviour
         EnemyHealth eh = other.GetComponent<EnemyHealth>();
         if (eh != null && !eh.IsDead)
         {
-            eh.TakeDamage(damage); hitEnemies.Add(other.gameObject);
+            // 🔥 COMBO FATIGUE: если слишком много ударов одной рукой — урон снижается
+            bool isFatigued = sameHandCombo > fatigueThreshold;
+            int actualDamage = isFatigued ? fatigueDamage : damage;
+            
+            eh.TakeDamage(actualDamage, isFatigued);
+            hitEnemies.Add(other.gameObject);
+            
             if (hitSound != null) { audioSource.pitch = Random.Range(0.9f, 1.1f); audioSource.PlayOneShot(hitSound, hitVolume); }
             Rigidbody2D rb = other.GetComponent<Rigidbody2D>();
             if (rb != null) { rb.linearVelocity = Vector2.zero; rb.AddForce((other.transform.position - transform.position).normalized * knockbackForce, ForceMode2D.Impulse); }

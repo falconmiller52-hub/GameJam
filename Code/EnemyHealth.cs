@@ -53,8 +53,20 @@ public class EnemyHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        TakeDamage(damage, false);
+    }
+
+    /// <summary>
+    /// Расширенная версия — поддерживает отображение сниженного урона
+    /// </summary>
+    public void TakeDamage(int damage, bool isReducedDamage)
+    {
         if (isDead) return;
         health -= damage;
+        
+        // 🔥 Всплывающий урон
+        DamagePopup.Create(transform.position, damage, isReducedDamage);
+        
         if (sr != null && gameObject.activeInHierarchy) StartCoroutine(FlashRed());
         StartCoroutine(ApplyKnockbackStun());
         if (health <= 0) Die();

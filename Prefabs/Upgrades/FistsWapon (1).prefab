@@ -369,11 +369,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FistsWeapon
   damage: 2
-  knockbackForce: 12
-  leftAttackCooldown: 0.4
-  rightAttackCooldown: 0.4
+  knockbackForce: 19
+  fatigueThreshold: 3
+  fatigueDamage: 1
+  leftAttackCooldown: 0.2
+  rightAttackCooldown: 0.2
   globalCooldown: 0.2
-  punchDistance: 0.5
+  punchDistance: 0.71
   punchOutTime: 0.08
   punchHoldTime: 0.1
   punchReturnTime: 0.15

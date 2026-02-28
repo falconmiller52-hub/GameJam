@@ -127,6 +127,10 @@ public class UpgradeManager : MonoBehaviour
         Debug.Log($"[UpgradeManager] Shield added! maxShield={shield.maxShield}");
     }
 
+    [Header("=== ЛОКАЛИЗАЦИЯ ===")]
+    [Tooltip("Подсказка при разблокировке перчаток")]
+    public string fistsUnlockHint = "Нажмите Q для смены оружия";
+
     void ApplyFists()
     {
         if (weaponSwitcher == null) weaponSwitcher = playerObject.GetComponent<WeaponSwitcher>();
@@ -141,12 +145,10 @@ public class UpgradeManager : MonoBehaviour
             weaponSwitcher.UnlockFists();
         }
 
-        // 🔥 Show tutorial hint: "Press Q to switch weapon"
         PlayerTutorial tutorial = playerObject.GetComponent<PlayerTutorial>();
         if (tutorial != null)
         {
-            tutorial.ShowCustomMessage("Press Q to switch weapon");
-            Debug.Log("[UpgradeManager] Fists unlocked! Tutorial hint shown.");
+            tutorial.ShowCustomMessage(fistsUnlockHint);
         }
     }
 

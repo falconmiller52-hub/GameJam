@@ -53,6 +53,10 @@ Cursor.visible = true;
             yield return null;
         }
 
+        // 🔥 ОПТИМИЗАЦИЯ: начинаем загрузку параллельно с затемнением
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(nextSceneName);
+        asyncLoad.allowSceneActivation = false;
+
         // ПЛАВНОЕ затемнение!
         if (fadeGroup != null)
         {
@@ -70,6 +74,11 @@ Cursor.visible = true;
             yield return new WaitForSeconds(fadeDuration);
         }
 
-        SceneManager.LoadScene(nextSceneName);
+        // Ждём завершения загрузки
+        while (asyncLoad.progress < 0.9f)
+            yield return null;
+
+        Time.timeScale = 1f;
+        asyncLoad.allowSceneActivation = true;
     }
 }

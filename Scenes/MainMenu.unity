@@ -203,16 +203,22 @@ MonoBehaviour:
   startButton: {fileID: 715397965}
   typingSpeed: 0.05
   sentences:
-  - WHO DARE TO DISTURB MY REST?
-  - A MISERABLE SOUL...
-  - YOUR FATE IS PREDICTED
-  - FILL MY VOID WITH FRESH BLOOD
-  - YOUR SWORD WILL BE YOUR CURSE
-  - YOUR WILL WILL BE YOUR SHIELD
-  - BUT REMEMBER
-  - IF YOU SHOW YOUR WEAKNESS
-  - YOUR FLESH SHALL BE MINE
-  - YOUR TIME HAS COME, WARRIOR
+  - "\u041A\u0422\u041E \u041F\u041E\u0421\u041C\u0415\u041B \u041F\u041E\u0422\u0420\u0415\u0412\u041E\u0416\u0418\u0422\u042C
+    \u041C\u041E\u0419 \u041F\u041E\u041A\u041E\u0419?"
+  - "\u0417\u0410\u0411\u041B\u0423\u0428\u0410\u042F \u0414\u0423\u0428\u0410..."
+  - "\u0422\u0412\u041E\u042F \u0421\u0423\u0414\u042C\u0411\u0410 \u041F\u0420\u0415\u0414\u0420\u0415\u0428\u0415\u041D\u0410"
+  - "\u0417\u0410\u041F\u041E\u041B\u041D\u0418 \u041F\u0423\u0421\u0422\u041E\u0422\u0423
+    \u0421\u0412\u0415\u0416\u0415\u0419 \u041A\u0420\u041E\u0412\u042C\u042E"
+  - "\u0422\u0412\u041E\u0419 \u041C\u0415\u0427 \u0421\u0422\u0410\u041D\u0415\u0422
+    \u0422\u0412\u041E\u0418\u041C \u041F\u0420\u041E\u041A\u041B\u042F\u0422\u0418\u0415"
+  - "\u0422\u0412\u041E\u042F \u0412\u041E\u041B\u042F \u0421\u0422\u0410\u041D\u0415\u0422
+    \u0422\u0412\u041E\u0418\u041C \u0429\u0418\u0422\u041E\u041C"
+  - "\u041D\u041E \u041F\u041E\u041C\u041D\u0418"
+  - "\u041F\u0420\u041E\u042F\u0412\u0418\u0428\u042C \u0421\u041B\u0410\u0411\u041E\u0421\u0422\u042C..."
+  - "\u0422\u0412\u041E\u042F \u041F\u041B\u041E\u0422\u042C \u0421\u0422\u0410\u041D\u0415\u0422
+    \u041C\u041E\u0415\u0419"
+  - "\u0422\u0412\u041E\u0419 \u0427\u0410\u0421 \u041D\u0410\u0421\u0422\u0410\u041B,
+    \u0412\u041E\u0418\u041D"
   monsterSpriteRenderer: {fileID: 1733896131}
   voiceClip: {fileID: 8300000, guid: a9a9060973519794d85ac2dac8b7a27c, type: 3}
   voicePitchVariation: 0.4
@@ -684,6 +690,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 731dcad69893a45488b310e5125c77cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
+  gameSceneName: Level1
 --- !u!4 &723988779
 Transform:
   m_ObjectHideFlags: 0
@@ -1390,6 +1397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 731dcad69893a45488b310e5125c77cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
+  gameSceneName: Level1
 --- !u!4 &1580064890
 Transform:
   m_ObjectHideFlags: 0
@@ -1632,8 +1640,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 149.733, y: -247.6}
-  m_SizeDelta: {x: 4050.188, y: 199.117}
+  m_AnchoredPosition: {x: 148.62302, y: -481}
+  m_SizeDelta: {x: 3216.261, y: 1206.791}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2091353377
 MonoBehaviour:
@@ -1682,8 +1690,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 200
-  m_fontSizeBase: 200
+  m_fontSize: 150
+  m_fontSizeBase: 150
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1721,7 +1729,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -3.5828707, y: 0, z: 2.9311526, w: 0}
+  m_margin: {x: 12.869874, y: 0, z: 14.676453, w: 0.00054804265}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

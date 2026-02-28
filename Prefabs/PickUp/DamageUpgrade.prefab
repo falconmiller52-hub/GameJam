@@ -106,8 +106,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UpgradePickup
   upgradeType: 1
   upgradeValue: 1
-  upgradeName: "\u0423\u0440\u043E\u043D"
-  upgradeDescription: "\u0423\u0440\u043E\u043D +1"
+  upgradeName: Damage
+  upgradeDescription: + 1 Damage
   upgradeIcon: {fileID: 3385720806342478644, guid: f571df6d1f455724697a5397f1f16678, type: 3}
   glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   bobSpeed: 2

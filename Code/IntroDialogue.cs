@@ -98,21 +98,29 @@ public class IntroDialogue : MonoBehaviour
 
     IEnumerator FadeToLevel()
     {
-        if (fadePanel == null)
+        // 🔥 ОПТИМИЗАЦИЯ: Начинаем загрузку сцены ПАРАЛЛЕЛЬНО с фейдом!
+        AsyncOperation asyncLoad = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(nextSceneName);
+        asyncLoad.allowSceneActivation = false; // Не активируем пока не закончится фейд
+
+        if (fadePanel != null)
         {
-            SceneManager.LoadScene(nextSceneName);
-            yield break;
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                fadePanel.alpha = Mathf.Clamp01(elapsed / fadeDuration);
+                yield return null;
+            }
+            fadePanel.alpha = 1f;
         }
 
-        float elapsed = 0f;
-        while (elapsed < fadeDuration)
-        {
-            elapsed += Time.deltaTime;
-            fadePanel.alpha = Mathf.Clamp01(elapsed / fadeDuration);
+        // Ждём пока загрузка дойдёт до 90% (максимум без активации)
+        while (asyncLoad.progress < 0.9f)
             yield return null;
-        }
 
-        SceneManager.LoadScene(nextSceneName);
+        // Готово — активируем!
+        Time.timeScale = 1f;
+        asyncLoad.allowSceneActivation = true;
     }
 
     public void BeginDialogue()

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.InputSystem;
 using System.Collections;
@@ -35,6 +36,14 @@ public class WaveSpawner : MonoBehaviour
     public TextMeshProUGUI countdownText;
     public CanvasGroup countdownCanvasGroup;
     public TextMeshProUGUI skipHintText;
+
+    [Header("=== ЛОКАЛИЗАЦИЯ UI ===")]
+    [Tooltip("Шаблон надписи волны. {0} = номер волны")]
+    public string waveWarningFormat = "ВОЛНА {0}";
+    [Tooltip("Надпись при зачистке волны")]
+    public string waveClearedMessage = "ВОЛНА ЗАЧИЩЕНА!";
+    [Tooltip("Шаблон таймера. {0} = секунды")]
+    public string countdownFormat = "Следующая волна через: {0}";
 
     [Header("=== WAVE CLEARED ICON ===")]
     public Image waveClearedIcon;
@@ -121,6 +130,10 @@ public class WaveSpawner : MonoBehaviour
     [Header("=== ENDING: FADE ===")]
     public CanvasGroup endFadePanel;
     public float endFadeDuration = 2f;
+
+    [Header("=== ENDING: CREDITS ===")]
+    [Tooltip("Имя сцены титров (если пусто — игра просто затемняется)")]
+    public string creditsSceneName = "Credits";
 
     [Header("=== DEBUG ===")]
     public bool debugLogs = true;
@@ -420,6 +433,14 @@ public class WaveSpawner : MonoBehaviour
             while (el < endFadeDuration) { el += Time.unscaledDeltaTime; endFadePanel.alpha = Mathf.Clamp01(el / endFadeDuration); yield return null; }
             endFadePanel.alpha = 1f;
         }
+
+        // 🔥 Переход в титры
+        if (!string.IsNullOrEmpty(creditsSceneName))
+        {
+            yield return new WaitForSecondsRealtime(1f);
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(creditsSceneName);
+        }
     }
 
     IEnumerator PanCamera(Transform cam, Vector3 target, float dur)
@@ -474,7 +495,7 @@ public class WaveSpawner : MonoBehaviour
     IEnumerator ShowWaveWarning()
     {
         if (warningSound != null) sfx.PlayOneShot(warningSound, warningVolume);
-        if (waveWarningText != null) waveWarningText.text = $"WAVE {currentWaveIndex + 1}";
+        if (waveWarningText != null) waveWarningText.text = string.Format(waveWarningFormat, currentWaveIndex + 1);
         if (warningCanvasGroup != null)
         { warningCanvasGroup.gameObject.SetActive(true); yield return FadeCG(warningCanvasGroup, 0f, 1f, 0.3f); yield return new WaitForSecondsRealtime(warningDuration); yield return FadeCG(warningCanvasGroup, 1f, 0f, 0.5f); warningCanvasGroup.gameObject.SetActive(false); }
         else yield return new WaitForSecondsRealtime(warningDuration);
@@ -483,7 +504,7 @@ public class WaveSpawner : MonoBehaviour
     IEnumerator ShowWaveCleared()
     {
         if (waveClearedSound != null) sfx.PlayOneShot(waveClearedSound, waveClearedVolume);
-        if (waveClearedText != null) waveClearedText.text = "WAVE CLEARED!";
+        if (waveClearedText != null) waveClearedText.text = waveClearedMessage;
         StartIconAnimation();
         if (clearedCanvasGroup != null)
         { clearedCanvasGroup.gameObject.SetActive(true); yield return FadeCG(clearedCanvasGroup, 0f, 1f, 0.3f); yield return new WaitForSecondsRealtime(clearedDisplayDuration); yield return FadeCG(clearedCanvasGroup, 1f, 0f, 0.5f); clearedCanvasGroup.gameObject.SetActive(false); }
@@ -498,7 +519,7 @@ public class WaveSpawner : MonoBehaviour
         if (skipHintText != null) skipHintText.text = "";
         float remaining = breakDuration;
         while (remaining > 0 && !upgradePickedUp)
-        { if (countdownText != null) countdownText.text = $"Next wave in: {Mathf.CeilToInt(remaining)}"; remaining -= Time.deltaTime; yield return null; }
+        { if (countdownText != null) countdownText.text = string.Format(countdownFormat, Mathf.CeilToInt(remaining)); remaining -= Time.deltaTime; yield return null; }
         if (countdownCanvasGroup != null) { yield return FadeCG(countdownCanvasGroup, 1f, 0f, 0.3f); countdownCanvasGroup.gameObject.SetActive(false); }
         if (upgradeSpawner != null) upgradeSpawner.DestroyAllUpgrades();
     }

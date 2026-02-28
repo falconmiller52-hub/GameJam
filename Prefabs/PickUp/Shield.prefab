@@ -107,7 +107,7 @@ MonoBehaviour:
   upgradeType: 6
   upgradeValue: 1
   upgradeName: Shield
-  upgradeDescription: Live a 5.2 seconds longer!
+  upgradeDescription: Live for 4 seconds longer!
   upgradeIcon: {fileID: 21300000, guid: 93d3e7c0d9fc10943bff5910798c651d, type: 3}
   glowColor: {r: 0.99215686, g: 0.95370424, b: 0, a: 1}
   bobSpeed: 2

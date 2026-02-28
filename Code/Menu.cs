@@ -3,17 +3,23 @@ using UnityEngine.SceneManagement; // Обязательно для работы
 
 public class MainMenu : MonoBehaviour
 {
-    // Эту функцию мы привяжем к кнопке
+    [Tooltip("Имя сцены для загрузки при нажатии Play")]
+    public string gameSceneName = "Level1";
+
     public void PlayGame()
     {
-        // Загружаем следующую сцену по индексу из Build Settings
-        // Это удобнее, чем писать имя сцены строкой ("Level1"), так как имена могут меняться
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        // 🔥 ИСПРАВЛЕНО: Грузим по имени, а не по buildIndex+1
+        // (buildIndex+1 сломается после добавления SplashScreen)
+        SceneManager.LoadScene(gameSceneName);
     }
 
     public void QuitGame()
     {
-        Debug.Log("QUIT!"); // Чтобы видеть работу в редакторе
+        Debug.Log("QUIT!");
         Application.Quit();
+        
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 }

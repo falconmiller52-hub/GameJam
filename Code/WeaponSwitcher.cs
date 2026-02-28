@@ -32,6 +32,9 @@ public class WeaponSwitcher : MonoBehaviour
     [Tooltip("Время показа подсказки после разблокировки")]
     public float hintDisplayTime = 5f;
 
+    [Tooltip("Текст подсказки смены оружия")]
+    public string switchHintMessage = "Нажмите Q чтобы сменить оружие";
+
     [Header("=== АУДИО ===")]
     public AudioClip switchSound;
     [Range(0f, 1f)]
@@ -197,7 +200,7 @@ public class WeaponSwitcher : MonoBehaviour
     IEnumerator ShowHintRoutine()
     {
         if (switchHintText != null)
-            switchHintText.text = "Нажмите Q чтобы сменить оружие";
+            switchHintText.text = switchHintMessage;
 
         if (hintCanvasGroup != null)
         {

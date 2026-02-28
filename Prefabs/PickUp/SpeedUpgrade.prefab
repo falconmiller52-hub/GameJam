@@ -107,7 +107,7 @@ MonoBehaviour:
   upgradeType: 0
   upgradeValue: 0.3
   upgradeName: Speed
-  upgradeDescription: '+ 20% speed '
+  upgradeDescription: '+ 20% Speed '
   upgradeIcon: {fileID: -785313801818691523, guid: 57f18a49baa871c4ca4a8c746332f60c, type: 3}
   glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   bobSpeed: 2
