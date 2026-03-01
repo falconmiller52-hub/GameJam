@@ -103,6 +103,10 @@ public class CreditsRoll : MonoBehaviour
         // Убедимся что Time.timeScale нормальный
         Time.timeScale = 1f;
 
+        // 📊 АНАЛИТИКА: игрок дошёл до титров
+        if (GameAnalyticsManager.Instance != null)
+            GameAnalyticsManager.Instance.TrackCreditsReached();
+
         // Курсор видим
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;

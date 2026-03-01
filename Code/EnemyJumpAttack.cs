@@ -345,7 +345,13 @@ public class EnemyJumpAttack : MonoBehaviour
             if (hit.CompareTag("Player"))
             {
                 PlayerHealth ph = hit.GetComponent<PlayerHealth>();
-                if (ph != null) ph.TakeDamage(damageAmount);
+                if (ph != null)
+                {
+                    // 📊 АНАЛИТИКА: урон от прыгающего врага
+                    if (GameAnalyticsManager.Instance != null)
+                        GameAnalyticsManager.Instance.SetLastDamageSource("jumper_aoe");
+                    ph.TakeDamage(damageAmount);
+                }
                 Rigidbody2D prb = hit.GetComponent<Rigidbody2D>();
                 if (prb != null && knockbackForce > 0)
                 {

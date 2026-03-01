@@ -16,7 +16,7 @@ public class PlayerTutorial : MonoBehaviour
 
     [Header("Animation")]
     public float typingSpeed = 0.08f;
-    public string tutorialMessage = "Press Space to dash";
+    public string tutorialMessage = "Нажмите Пробел чтобы сделать рывок";
 
     [Header("Position")]
     public Vector3 offsetFromPlayer = new Vector3(0, 2f, 0);

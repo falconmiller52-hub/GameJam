@@ -8,8 +8,10 @@ public class MainMenu : MonoBehaviour
 
     public void PlayGame()
     {
-        // 🔥 ИСПРАВЛЕНО: Грузим по имени, а не по buildIndex+1
-        // (buildIndex+1 сломается после добавления SplashScreen)
+        // 📊 АНАЛИТИКА: игрок начал игру
+        if (GameAnalyticsManager.Instance != null)
+            GameAnalyticsManager.Instance.TrackGameStarted();
+
         SceneManager.LoadScene(gameSceneName);
     }
 

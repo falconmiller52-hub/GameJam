@@ -354,6 +354,10 @@ public class Projectile : MonoBehaviour
         PlayerHealth playerHealth = playerCollider.GetComponent<PlayerHealth>();
         if (playerHealth != null)
         {
+            // 📊 АНАЛИТИКА: запоминаем что урон от стрелка
+            if (GameAnalyticsManager.Instance != null)
+                GameAnalyticsManager.Instance.SetLastDamageSource("ranged_projectile");
+
             playerHealth.TakeDamage(damage);
         }
 

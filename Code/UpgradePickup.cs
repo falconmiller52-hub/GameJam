@@ -83,6 +83,11 @@ public class UpgradePickup : MonoBehaviour
     {
         if (isPickedUp) return;
         isPickedUp = true;
+        
+        // 📊 АНАЛИТИКА: игрок выбрал апгрейд
+        if (GameAnalyticsManager.Instance != null)
+            GameAnalyticsManager.Instance.TrackUpgradePicked(upgradeType.ToString(), upgradeName);
+        
         if (UpgradeManager.Instance != null) UpgradeManager.Instance.ApplyUpgrade(upgradeType, upgradeValue);
         if (pickupSound != null) AudioSource.PlayClipAtPoint(pickupSound, transform.position, pickupVolume);
         if (waveSpawner != null) waveSpawner.OnUpgradePickedUp();

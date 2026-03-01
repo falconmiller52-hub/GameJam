@@ -275,6 +275,10 @@ public class WaveSpawner : MonoBehaviour
             SetMonsterState(2);
             OnWaveStarted?.Invoke();
 
+            // 📊 АНАЛИТИКА: волна началась
+            if (GameAnalyticsManager.Instance != null)
+                GameAnalyticsManager.Instance.TrackWaveStarted(currentWaveIndex + 1);
+
             // Reset tracker flag
             allEnemiesSpawned = false;
 
@@ -285,6 +289,10 @@ public class WaveSpawner : MonoBehaviour
             yield return StartCoroutine(WaitForAllEnemiesDead());
 
             OnWaveCleared?.Invoke();
+
+            // 📊 АНАЛИТИКА: волна зачищена
+            if (GameAnalyticsManager.Instance != null)
+                GameAnalyticsManager.Instance.TrackWaveCleared(currentWaveIndex + 1);
 
             if (currentWaveIndex >= waves.Length - 1)
             { yield return StartCoroutine(EndingSequence()); yield break; }
@@ -385,6 +393,11 @@ public class WaveSpawner : MonoBehaviour
     {
         gameEnded = true;
         SetMonsterState(1);
+
+        // 📊 АНАЛИТИКА: игрок прошёл все волны!
+        if (GameAnalyticsManager.Instance != null)
+            GameAnalyticsManager.Instance.TrackGameCompleted();
+
         yield return new WaitForSeconds(endingDelay);
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -448,6 +461,10 @@ public class WaveSpawner : MonoBehaviour
 
     IEnumerator PlayEndingDialogue()
     {
+        // 📊 АНАЛИТИКА: финальный диалог начался
+        if (GameAnalyticsManager.Instance != null)
+            GameAnalyticsManager.Instance.TrackEndingDialogueStart();
+
         for (int i = 0; i < endingDialogueLines.Length; i++)
         {
             SetDT("");

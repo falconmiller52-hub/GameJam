@@ -218,6 +218,10 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log("DIE() CALLED");
         isDead = true;
 
+        // 📊 АНАЛИТИКА: игрок умер
+        if (GameAnalyticsManager.Instance != null)
+            GameAnalyticsManager.Instance.TrackPlayerDied();
+
         // Останавливаем мигание
         if (invincibilityCoroutine != null)
         {

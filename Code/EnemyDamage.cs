@@ -17,6 +17,13 @@ public class EnemyDamage : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Player"))
         {
+            // 📊 АНАЛИТИКА: запоминаем тип врага перед нанесением урона
+            if (GameAnalyticsManager.Instance != null)
+            {
+                string enemyType = GetEnemyType();
+                GameAnalyticsManager.Instance.SetLastDamageSource(enemyType);
+            }
+
             PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
             
             if (playerHealth != null)
@@ -24,6 +31,17 @@ public class EnemyDamage : MonoBehaviour
                 playerHealth.TakeDamage(damage);
             }
         }
+    }
+
+    /// <summary>
+    /// Определяет тип врага по компонентам на объекте
+    /// </summary>
+    string GetEnemyType()
+    {
+        if (GetComponent<EnemyJumpAttack>() != null) return "jumper";
+        if (GetComponent<EnemyDash>() != null) return "dasher";
+        if (GetComponent<EnemyRangedAI>() != null) return "ranged";
+        return "basic_melee";
     }
     
     // То же самое для OnCollisionStay, если ты решишь его использовать
